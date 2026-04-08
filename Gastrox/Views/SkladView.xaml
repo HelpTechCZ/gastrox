@@ -106,10 +106,18 @@
                             </Style>
                         </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Resources>
-                            <Style x:Key="NumericCell" TargetType="TextBlock">
-                                <Setter Property="TextAlignment" Value="Center"/>
+                            <!-- Implicit styl pro všechny TextBloky v DataGridu:
+                                 vertikálně na střed + text centrovaný.
+                                 Důvod: WPF default VerticalAlignment na TextBlocku je Top,
+                                 takže bez toho spadnou texty v buňkách nahoru,
+                                 i když DataGridCell má VerticalContentAlignment="Center". -->
+                            <Style TargetType="TextBlock">
                                 <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="TextAlignment" Value="Center"/>
                             </Style>
+                            <!-- Zpětná kompatibilita – některé sloupce ještě odkazují na tento klíč.
+                                 Dědí z implicit TextBlock stylu výše (prázdný body je OK). -->
+                            <Style x:Key="NumericCell" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}"/>
                             <Style x:Key="NumericHeader" TargetType="{x:Type dgp:DataGridColumnHeader}">
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>
