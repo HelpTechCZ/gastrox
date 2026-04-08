@@ -83,12 +83,34 @@
                               BorderThickness="0"
                               RowHeight="32"
                               AlternatingRowBackground="#FAFAFA">
+                        <DataGrid.Resources>
+                            <Style x:Key="NumericCell" TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="Margin" Value="0,0,8,0"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGrid.Resources>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Název"     Binding="{Binding Nazev}"            Width="*"/>
-                            <DataGridTextColumn Header="Kategorie" Binding="{Binding Kategorie}"        Width="120"/>
-                            <DataGridTextColumn Header="Stav"      Binding="{Binding AktualniStavEvidencni, StringFormat=N2}" Width="80"/>
-                            <DataGridTextColumn Header="EJ"        Binding="{Binding EvidencniJednotka}" Width="50"/>
-                            <DataGridTextColumn Header="Min."      Binding="{Binding MinimalniStav, StringFormat=N2}" Width="60"/>
+                            <DataGridTextColumn Header="Název"     Binding="{Binding Nazev}"            Width="*" MinWidth="140"/>
+                            <DataGridTextColumn Header="Kategorie" Binding="{Binding Kategorie}"        Width="110"/>
+                            <DataGridTextColumn Header="Stav"      Binding="{Binding AktualniStavEvidencni, StringFormat=N2}"
+                                                Width="70" ElementStyle="{StaticResource NumericCell}"/>
+                            <DataGridTextColumn Header="EJ"        Binding="{Binding EvidencniJednotka}" Width="44"/>
+                            <DataGridTextColumn Header="Min."      Binding="{Binding MinimalniStav, StringFormat=N2}"
+                                                Width="60" ElementStyle="{StaticResource NumericCell}"/>
+
+                            <DataGridTextColumn Header="Nákup/j. bez DPH"
+                                                Binding="{Binding NakupniCenaZaJednotkuBezDPH, StringFormat=N2}"
+                                                Width="100" ElementStyle="{StaticResource NumericCell}"/>
+                            <DataGridTextColumn Header="Nákup celkem b. DPH"
+                                                Binding="{Binding HodnotaNakupBezDPH, StringFormat=N2}"
+                                                Width="120" ElementStyle="{StaticResource NumericCell}"/>
+                            <DataGridTextColumn Header="Prodej/j. s DPH"
+                                                Binding="{Binding ProdejniCenaZaJednotkuSDPH, StringFormat=N2}"
+                                                Width="100" ElementStyle="{StaticResource NumericCell}"/>
+                            <DataGridTextColumn Header="Prodej celkem s DPH"
+                                                Binding="{Binding HodnotaProdejSDPH, StringFormat=N2}"
+                                                Width="120" ElementStyle="{StaticResource NumericCell}"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
