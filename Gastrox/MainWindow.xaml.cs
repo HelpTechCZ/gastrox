@@ -1,5 +1,7 @@
+using System;
 using System.Windows;
-using System.Windows.Controls;
+using Gastrox.Models;
+using Gastrox.Services;
 using Gastrox.Views;
 
 namespace Gastrox;
@@ -9,20 +11,73 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        MainContent.Content = new PrijemkaView();
+        ShowDashboard();
     }
 
-    private void Dashboard_Click(object sender, RoutedEventArgs e)  => MainContent.Content = Placeholder("Dashboard – TODO");
-    private void Sklad_Click(object sender, RoutedEventArgs e)      => MainContent.Content = Placeholder("Sklad – TODO");
-    private void Prijemky_Click(object sender, RoutedEventArgs e)   => MainContent.Content = new PrijemkaView();
-    private void Vydejky_Click(object sender, RoutedEventArgs e)    => MainContent.Content = Placeholder("Výdejky – TODO");
-    private void Inventury_Click(object sender, RoutedEventArgs e)  => MainContent.Content = Placeholder("Inventury – TODO");
-    private void Reporty_Click(object sender, RoutedEventArgs e)    => MainContent.Content = Placeholder("Reporty – TODO");
-
-    private static TextBlock Placeholder(string text) => new()
+    private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
-        Text = text,
-        FontSize = 24,
-        Margin = new Thickness(24)
-    };
+        // Automatická kontrola aktualizací při startu, pokud je zapnutá
+        try
+        {
+            var n = DatabaseService.LoadNastaveni();
+            var auto = n.TryGetValue(NastaveniKey.UpdateAutoCheck, out var v) ? v : "1";
+            if (auto != "1") return;
+
+            var info = await UpdateService.CheckForUpdatesAsync();
+            DatabaseService.SaveNastaveni(NastaveniKey.UpdateLastCheck, DateTime.Now.ToString("o"));
+
+            if (info is null) return;
+
+            var res = MessageBox.Show(
+                $"Je k dispozici nová verze {info.Version}.\n\nStáhnout a nainstalovat nyní?",
+                "Aktualizace Gastrox",
+                MessageBoxButton.YesNo, MessageBoxImage.Information);
+            if (res != MessageBoxResult.Yes) return;
+
+            var dir = await UpdateService.DownloadAndPrepareAsync(info);
+            UpdateService.LaunchUpdaterAndExit(dir);
+            Application.Current.Shutdown();
+        }
+        catch
+        {
+            // Aktualizace nesmí blokovat start aplikace
+        }
+    }
+
+    private void ShowDashboard()
+    {
+        var dash = new DashboardView();
+        dash.NaskladnitClicked += (_, __) => ShowNaskladnit();
+        dash.VyskladnitClicked += (_, __) => ShowVyskladnit();
+        dash.InventuraClicked  += (_, __) => ShowInventura();
+        MainContent.Content = dash;
+    }
+
+    private void ShowNaskladnit()
+    {
+        var v = new NaskladnitWizardView();
+        v.Hotovo += ShowDashboard;
+        MainContent.Content = v;
+    }
+
+    private void ShowVyskladnit()
+    {
+        var v = new VydejkaWizardView();
+        v.Hotovo += ShowDashboard;
+        MainContent.Content = v;
+    }
+
+    private void ShowInventura()
+    {
+        var v = new InventuraWizardView();
+        v.Hotovo += ShowDashboard;
+        MainContent.Content = v;
+    }
+
+    private void Dashboard_Click(object sender, RoutedEventArgs e)  => ShowDashboard();
+    private void Sklad_Click(object sender, RoutedEventArgs e)      => MainContent.Content = new SkladView();
+    private void Naskladnit_Click(object sender, RoutedEventArgs e) => ShowNaskladnit();
+    private void Vyskladnit_Click(object sender, RoutedEventArgs e) => ShowVyskladnit();
+    private void Inventura_Click(object sender, RoutedEventArgs e)  => ShowInventura();
+    private void Nastaveni_Click(object sender, RoutedEventArgs e)  => MainContent.Content = new NastaveniView();
 }

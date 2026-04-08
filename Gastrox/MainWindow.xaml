@@ -7,7 +7,8 @@
         WindowStartupLocation="CenterScreen"
         Background="#F3F3F3"
         FontFamily="Segoe UI"
-        FontSize="13">
+        FontSize="13"
+        Loaded="Window_Loaded">
 
     <Window.Resources>
         <Style x:Key="MenuButton" TargetType="Button">
@@ -44,16 +45,21 @@
 
         <!-- Boční menu -->
         <Border Grid.Column="0" Background="#202020">
-            <StackPanel Margin="16">
-                <TextBlock Text="GASTROX" Foreground="White" FontSize="22" FontWeight="Bold" Margin="8,16,8,24"/>
+            <DockPanel Margin="16">
+                <TextBlock DockPanel.Dock="Top" Text="GASTROX" Foreground="White" FontSize="22" FontWeight="Bold" Margin="8,16,8,24"/>
 
-                <Button Content="Dashboard"   Style="{StaticResource MenuButton}" Click="Dashboard_Click"/>
-                <Button Content="Sklad"       Style="{StaticResource MenuButton}" Click="Sklad_Click"/>
-                <Button Content="Příjemky"    Style="{StaticResource MenuButton}" Click="Prijemky_Click"/>
-                <Button Content="Výdejky"     Style="{StaticResource MenuButton}" Click="Vydejky_Click"/>
-                <Button Content="Inventury"   Style="{StaticResource MenuButton}" Click="Inventury_Click"/>
-                <Button Content="Reporty"     Style="{StaticResource MenuButton}" Click="Reporty_Click"/>
-            </StackPanel>
+                <StackPanel DockPanel.Dock="Bottom">
+                    <Button Content="⚙ Nastavení" Style="{StaticResource MenuButton}" Click="Nastaveni_Click"/>
+                </StackPanel>
+
+                <StackPanel>
+                    <Button Content="🏠 Dashboard"  Style="{StaticResource MenuButton}" Click="Dashboard_Click"/>
+                    <Button Content="📦 Sklad"      Style="{StaticResource MenuButton}" Click="Sklad_Click"/>
+                    <Button Content="📥 Naskladnit" Style="{StaticResource MenuButton}" Click="Naskladnit_Click"/>
+                    <Button Content="📤 Vyskladnit" Style="{StaticResource MenuButton}" Click="Vyskladnit_Click"/>
+                    <Button Content="📋 Inventura"  Style="{StaticResource MenuButton}" Click="Inventura_Click"/>
+                </StackPanel>
+            </DockPanel>
         </Border>
 
         <!-- Hlavní obsah -->

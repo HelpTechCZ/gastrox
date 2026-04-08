@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using System.Linq;
 using Gastrox.Models;
 
 namespace Gastrox.ViewModels;
@@ -5,13 +7,22 @@ namespace Gastrox.ViewModels;
 /// <summary>
 /// Řádek příjemky ve formě ViewModelu – drží vlastní observable state
 /// a přepočítává mezi počtem balení a evidenčními jednotkami v reálném čase.
+/// Sazba DPH se vybírá z dostupných sazeb (sdílená kolekce z PrijemkaViewModelu).
 /// </summary>
 public class PrijemkaRadekViewModel : ViewModelBase
 {
     private SkladovaKarta? _vybraneZbozi;
     private decimal _pocetBaleni;
     private decimal _nakupniCenaBezDPH;
-    private decimal _sazbaDPH = 21m;
+    private SazbaDPH? _vybranaSazba;
+
+    public PrijemkaRadekViewModel(ObservableCollection<SazbaDPH> dostupneSazby)
+    {
+        DostupneSazby = dostupneSazby;
+        _vybranaSazba = dostupneSazby.FirstOrDefault(s => s.JeVychozi) ?? dostupneSazby.FirstOrDefault();
+    }
+
+    public ObservableCollection<SazbaDPH> DostupneSazby { get; }
 
     public SkladovaKarta? VybraneZbozi
     {
@@ -20,9 +31,11 @@ public class PrijemkaRadekViewModel : ViewModelBase
         {
             if (SetProperty(ref _vybraneZbozi, value) && value is not null)
             {
-                // Automaticky předvyplníme cenu a sazbu z karty
                 NakupniCenaBezDPH = value.NakupniCenaBezDPH;
-                SazbaDPH = value.SazbaDPH;
+                // Předvyplnit sazbu z karty (najít odpovídající z dostupných)
+                var match = DostupneSazby.FirstOrDefault(s => s.Sazba == value.SazbaDPH);
+                if (match is not null) VybranaSazba = match;
+
                 OnPropertyChanged(nameof(TypBaleni));
                 OnPropertyChanged(nameof(EvidencniJednotka));
                 OnPropertyChanged(nameof(KoeficientPrepoctu));
@@ -60,15 +73,17 @@ public class PrijemkaRadekViewModel : ViewModelBase
         }
     }
 
-    public decimal SazbaDPH
+    public SazbaDPH? VybranaSazba
     {
-        get => _sazbaDPH;
+        get => _vybranaSazba;
         set
         {
-            if (SetProperty(ref _sazbaDPH, value))
+            if (SetProperty(ref _vybranaSazba, value))
                 OnPropertyChanged(nameof(CelkemSDPH));
         }
     }
+
+    public decimal SazbaDphValue => _vybranaSazba?.Sazba ?? 0m;
 
     // ---- odvozené (read-only) ----
 
@@ -76,14 +91,8 @@ public class PrijemkaRadekViewModel : ViewModelBase
     public string EvidencniJednotka   => _vybraneZbozi?.EvidencniJednotka ?? "-";
     public decimal KoeficientPrepoctu => _vybraneZbozi?.KoeficientPrepoctu ?? 0m;
 
-    /// <summary>
-    /// Jádro přepočtu: počet balení × koeficient = evidenční jednotky.
-    /// </summary>
     public decimal MnozstviEvidencni => PocetBaleni * KoeficientPrepoctu;
 
-    /// <summary>
-    /// Textové zobrazení přepočtu – např. "5 × 0,7 l = 3,5 l".
-    /// </summary>
     public string ZobrazeniPrepoctu
     {
         get
@@ -94,7 +103,7 @@ public class PrijemkaRadekViewModel : ViewModelBase
     }
 
     public decimal CelkemBezDPH => PocetBaleni * NakupniCenaBezDPH;
-    public decimal CelkemSDPH   => CelkemBezDPH * (1 + SazbaDPH / 100m);
+    public decimal CelkemSDPH   => CelkemBezDPH * (1 + SazbaDphValue / 100m);
 
     public PrijemkaRadek ToModel()
     {
@@ -107,7 +116,7 @@ public class PrijemkaRadekViewModel : ViewModelBase
             PocetBaleni        = PocetBaleni,
             KoeficientPrepoctu = KoeficientPrepoctu,
             NakupniCenaBezDPH  = NakupniCenaBezDPH,
-            SazbaDPH           = SazbaDPH
+            SazbaDPH           = SazbaDphValue
         };
     }
 }

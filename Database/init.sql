@@ -155,3 +155,35 @@ CREATE TABLE IF NOT EXISTS PohybSkladu (
 
 CREATE INDEX IF NOT EXISTS IX_PohybSkladu_Karta ON PohybSkladu(SkladovaKarta_Id);
 CREATE INDEX IF NOT EXISTS IX_PohybSkladu_Datum ON PohybSkladu(Datum);
+
+-- ---------------------------------------------------------------------
+-- NASTAVENÍ (key/value: údaje o firmě, konfigurace aktualizací, …)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS Nastaveni (
+    Klic     TEXT PRIMARY KEY,
+    Hodnota  TEXT
+);
+
+-- ---------------------------------------------------------------------
+-- SAZBY DPH
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS SazbaDPH (
+    Id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    Sazba        REAL    NOT NULL,
+    Popis        TEXT    NOT NULL,
+    Je_Vychozi   INTEGER NOT NULL DEFAULT 0,
+    Je_Aktivni   INTEGER NOT NULL DEFAULT 1
+);
+
+-- Defaultní sazby (vloží se jen jednou, při prvním spuštění)
+INSERT INTO SazbaDPH (Sazba, Popis, Je_Vychozi, Je_Aktivni)
+SELECT 21, 'Základní 21 %', 1, 1
+WHERE NOT EXISTS (SELECT 1 FROM SazbaDPH WHERE Sazba = 21);
+
+INSERT INTO SazbaDPH (Sazba, Popis, Je_Vychozi, Je_Aktivni)
+SELECT 12, 'Snížená 12 %', 0, 1
+WHERE NOT EXISTS (SELECT 1 FROM SazbaDPH WHERE Sazba = 12);
+
+INSERT INTO SazbaDPH (Sazba, Popis, Je_Vychozi, Je_Aktivni)
+SELECT 0, 'Nulová 0 %', 0, 1
+WHERE NOT EXISTS (SELECT 1 FROM SazbaDPH WHERE Sazba = 0);

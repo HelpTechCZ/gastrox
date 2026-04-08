@@ -123,9 +123,14 @@
                                             Binding="{Binding NakupniCenaBezDPH, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
                                             Width="*"/>
 
-                        <DataGridTextColumn Header="DPH %"
-                                            Binding="{Binding SazbaDPH, StringFormat=N0}"
-                                            Width="Auto"/>
+                        <DataGridTemplateColumn Header="DPH" Width="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{Binding DostupneSazby}"
+                                              SelectedItem="{Binding VybranaSazba, UpdateSourceTrigger=PropertyChanged}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
 
                         <DataGridTextColumn Header="Celkem bez DPH"
                                             Binding="{Binding CelkemBezDPH, StringFormat=N2}"

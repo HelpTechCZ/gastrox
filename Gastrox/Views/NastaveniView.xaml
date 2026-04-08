@@ -1,0 +1,167 @@
+<UserControl x:Class="Gastrox.Views.NastaveniView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Gastrox.ViewModels"
+             FontFamily="Segoe UI" FontSize="13" Background="#F3F3F3">
+    <UserControl.DataContext>
+        <vm:NastaveniViewModel/>
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Nastavení" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,16"/>
+
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+            <!-- TAB FIRMA -->
+            <TabItem Header="Firma">
+                <Border Background="White" CornerRadius="14" Padding="24" Margin="0,8,0,0">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel MaxWidth="600" HorizontalAlignment="Left">
+                            <TextBlock Text="Údaje o firmě" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                            <TextBlock Text="Tyto údaje se použijí jako hlavička v PDF reportech a exportech."
+                                       Foreground="#666" Margin="0,0,0,16" TextWrapping="Wrap"/>
+
+                            <TextBlock Text="Název firmy"/>
+                            <TextBox Text="{Binding FirmaNazev, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,10" Padding="8,6"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="IČO"/>
+                                    <TextBox Text="{Binding FirmaIco, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,10" Padding="8,6"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="DIČ"/>
+                                    <TextBox Text="{Binding FirmaDic, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,10" Padding="8,6"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="Ulice a č.p."/>
+                            <TextBox Text="{Binding FirmaUlice, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,10" Padding="8,6"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="12"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Město"/>
+                                    <TextBox Text="{Binding FirmaMesto, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,10" Padding="8,6"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="PSČ"/>
+                                    <TextBox Text="{Binding FirmaPsc, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,10" Padding="8,6"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="Stát"/>
+                            <TextBox Text="{Binding FirmaStat, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,10" Padding="8,6"/>
+
+                            <TextBlock Text="E-mail"/>
+                            <TextBox Text="{Binding FirmaEmail, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,10" Padding="8,6"/>
+
+                            <TextBlock Text="Telefon"/>
+                            <TextBox Text="{Binding FirmaTelefon, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,16" Padding="8,6"/>
+
+                            <Button Content="Uložit údaje firmy"
+                                    Command="{Binding UlozitFirmuCommand}"
+                                    HorizontalAlignment="Left"
+                                    Padding="14,8" Background="#0078D4" Foreground="White"
+                                    BorderThickness="0" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+            </TabItem>
+
+            <!-- TAB SAZBY DPH -->
+            <TabItem Header="Sazby DPH">
+                <Border Background="White" CornerRadius="14" Padding="24" Margin="0,8,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="320"/>
+                        </Grid.ColumnDefinitions>
+
+                        <DataGrid Grid.Column="0"
+                                  ItemsSource="{Binding Sazby}"
+                                  SelectedItem="{Binding VybranaSazba}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  Margin="0,0,16,0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Sazba %" Binding="{Binding Sazba, StringFormat=N2}" Width="*"/>
+                                <DataGridTextColumn Header="Popis" Binding="{Binding Popis}" Width="2*"/>
+                                <DataGridCheckBoxColumn Header="Výchozí" Binding="{Binding JeVychozi}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Přidat sazbu" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+                            <TextBlock Text="Sazba (%)"/>
+                            <TextBox Text="{Binding NovaSazba, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                     Margin="0,4,0,10" Padding="8,6"/>
+
+                            <TextBlock Text="Popis"/>
+                            <TextBox Text="{Binding NovaPopis, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,4,0,10" Padding="8,6"/>
+
+                            <CheckBox Content="Nastavit jako výchozí"
+                                      IsChecked="{Binding NovaJeVychozi}" Margin="0,0,0,16"/>
+
+                            <Button Content="+ Přidat"
+                                    Command="{Binding PridatSazbuCommand}"
+                                    Padding="14,8" Background="#0078D4" Foreground="White"
+                                    BorderThickness="0" HorizontalAlignment="Left" FontWeight="SemiBold"/>
+
+                            <Border Margin="0,16,0,16" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0"/>
+
+                            <Button Content="Deaktivovat vybranou"
+                                    Command="{Binding DeaktivovatSazbuCommand}"
+                                    Padding="14,8" Background="#D13438" Foreground="White"
+                                    BorderThickness="0" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </TabItem>
+
+            <!-- TAB AKTUALIZACE -->
+            <TabItem Header="Aktualizace">
+                <Border Background="White" CornerRadius="14" Padding="24" Margin="0,8,0,0">
+                    <StackPanel MaxWidth="600" HorizontalAlignment="Left">
+                        <TextBlock Text="Aktualizace aplikace" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                        <TextBlock Text="{Binding AktualniVerze}" Margin="0,0,0,16" Foreground="#666"/>
+
+                        <CheckBox Content="Při startu automaticky kontrolovat nové verze"
+                                  IsChecked="{Binding AutoCheck}" Margin="0,0,0,16"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <Button Content="Uložit nastavení"
+                                    Command="{Binding UlozitAktualizaceCommand}"
+                                    Padding="14,8" Background="#0078D4" Foreground="White"
+                                    BorderThickness="0" FontWeight="SemiBold"/>
+                            <Button Content="Zkontrolovat nyní"
+                                    Command="{Binding ZkontrolovatNynicommand}"
+                                    Margin="8,0,0,0" Padding="14,8"/>
+                        </StackPanel>
+
+                        <Border Background="#F8F8F8" CornerRadius="6" Padding="12">
+                            <TextBlock Text="{Binding StatusAktualizace}" TextWrapping="Wrap"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

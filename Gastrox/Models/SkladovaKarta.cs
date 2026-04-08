@@ -59,4 +59,18 @@ public class SkladovaKarta
     /// </summary>
     public decimal AktualniStavVBaleni
         => KoeficientPrepoctu > 0 ? AktualniStavEvidencni / KoeficientPrepoctu : 0m;
+
+    /// <summary>Nákupní cena včetně DPH (vypočteno ze sazby).</summary>
+    public decimal NakupniCenaSDPH => NakupniCenaBezDPH * (1 + SazbaDPH / 100m);
+
+    /// <summary>Prodejní cena bez DPH (vypočteno ze sazby).</summary>
+    public decimal ProdejniCenaBezDPH
+        => SazbaDPH > 0 ? ProdejniCenaSDPH / (1 + SazbaDPH / 100m) : ProdejniCenaSDPH;
+
+    /// <summary>Marže v Kč na evidenční jednotku (prodej − nákup, oboje bez DPH).</summary>
+    public decimal MarzeKc => ProdejniCenaBezDPH - NakupniCenaBezDPH;
+
+    /// <summary>Marže v procentech ze cenového rozdílu (z prodejní ceny bez DPH).</summary>
+    public decimal MarzeProcent
+        => ProdejniCenaBezDPH > 0 ? Math.Round((MarzeKc / ProdejniCenaBezDPH) * 100m, 1) : 0m;
 }

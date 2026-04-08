@@ -30,6 +30,7 @@ public class PrijemkaViewModel : ViewModelBase
 
         // Dostupné zboží pro našeptávač
         DostupneZbozi = new ObservableCollection<SkladovaKarta>(DatabaseService.LoadAktivniKarty());
+        DostupneSazby = new ObservableCollection<SazbaDPH>(DatabaseService.LoadAktivniSazbyDph());
 
         PridatRadekCommand = new RelayCommand(_ => PridejPrazdnyRadek());
         OdebratRadekCommand = new RelayCommand(OdeberRadek, radek => radek is PrijemkaRadekViewModel);
@@ -49,6 +50,7 @@ public class PrijemkaViewModel : ViewModelBase
     // ---------- Řádky ----------
     public ObservableCollection<PrijemkaRadekViewModel> Radky { get; }
     public ObservableCollection<SkladovaKarta> DostupneZbozi { get; }
+    public ObservableCollection<SazbaDPH> DostupneSazby { get; }
 
     // ---------- Součty (odvozené) ----------
     public decimal CelkemBezDPH => Radky.Sum(r => r.CelkemBezDPH);
@@ -62,7 +64,7 @@ public class PrijemkaViewModel : ViewModelBase
     // ---------- Logika ----------
     private void PridejPrazdnyRadek()
     {
-        var radek = new PrijemkaRadekViewModel();
+        var radek = new PrijemkaRadekViewModel(DostupneSazby);
         radek.PropertyChanged += RadekZmenen;
         Radky.Add(radek);
     }

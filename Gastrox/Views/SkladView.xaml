@@ -1,0 +1,155 @@
+<UserControl x:Class="Gastrox.Views.SkladView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:Gastrox.ViewModels"
+             FontFamily="Segoe UI" FontSize="13"
+             Background="#F3F3F3">
+    <UserControl.DataContext>
+        <vm:SkladViewModel />
+    </UserControl.DataContext>
+
+    <Grid Margin="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Hlavička -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+            <TextBlock Text="Skladové karty" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <Button Content="+ Nová karta"
+                    Command="{Binding NovaKartaCommand}"
+                    Margin="24,0,0,0" Padding="14,8" Background="#0078D4" Foreground="White"
+                    BorderThickness="0" Cursor="Hand" FontWeight="SemiBold"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="420"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Seznam karet -->
+            <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="0" Margin="0,0,16,0">
+                <DataGrid ItemsSource="{Binding Karty}"
+                          SelectedItem="{Binding VybranaKarta}"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          GridLinesVisibility="Horizontal"
+                          HeadersVisibility="Column"
+                          BorderThickness="0"
+                          RowHeight="32"
+                          AlternatingRowBackground="#FAFAFA">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Název"     Binding="{Binding Nazev}"            Width="*"/>
+                        <DataGridTextColumn Header="Kategorie" Binding="{Binding Kategorie}"        Width="120"/>
+                        <DataGridTextColumn Header="Stav"      Binding="{Binding AktualniStavEvidencni, StringFormat=N2}" Width="80"/>
+                        <DataGridTextColumn Header="EJ"        Binding="{Binding EvidencniJednotka}" Width="50"/>
+                        <DataGridTextColumn Header="Min."      Binding="{Binding MinimalniStav, StringFormat=N2}" Width="60"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- Formulář -->
+            <Border Grid.Column="1" Background="White" CornerRadius="8" Padding="20">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="Karta" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Název *"/>
+                        <TextBox Text="{Binding Nazev, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" Padding="6,4"/>
+
+                        <TextBlock Text="Kategorie"/>
+                        <ComboBox ItemsSource="{Binding Kategorie}"
+                                  SelectedItem="{Binding Kategorie_Sel}"
+                                  Margin="0,2,0,10" Padding="6,4"/>
+
+                        <TextBlock Text="EAN"/>
+                        <TextBox Text="{Binding EAN, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" Padding="6,4"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Evidenční jednotka"/>
+                                <ComboBox ItemsSource="{Binding EvidencniJednotky}"
+                                          SelectedItem="{Binding EvidencniJednotka_Sel}"
+                                          Margin="0,2,0,10" Padding="6,4"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Koeficient"/>
+                                <TextBox Text="{Binding KoeficientPrepoctu, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" Margin="0,2,0,10" Padding="6,4"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Typ balení (Láhev 0,7l, Sud 50l, …)"/>
+                        <TextBox Text="{Binding TypBaleni, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" Padding="6,4"/>
+
+                        <Border BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Margin="0,6,0,12"/>
+
+                        <TextBlock Text="Ceny" FontWeight="SemiBold" Margin="0,0,0,6"/>
+
+                        <TextBlock Text="Sazba DPH"/>
+                        <ComboBox ItemsSource="{Binding DostupneSazby}"
+                                  SelectedItem="{Binding VybranaSazba}"
+                                  Margin="0,2,0,10" Padding="6,4"/>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Nákupní cena bez DPH"/>
+                                <TextBox Text="{Binding NakupniCenaBezDPH, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" Margin="0,2,0,4" Padding="6,4"/>
+                                <TextBlock Foreground="#666"
+                                           Text="{Binding NakupniCenaSDPH, StringFormat='s DPH: {0:N2} Kč'}"
+                                           Margin="0,0,0,10"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Prodejní cena s DPH"/>
+                                <TextBox Text="{Binding ProdejniCenaSDPH, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" Margin="0,2,0,4" Padding="6,4"/>
+                                <TextBlock Foreground="#666"
+                                           Text="{Binding ProdejniCenaBezDPH, StringFormat='bez DPH: {0:N2} Kč'}"
+                                           Margin="0,0,0,10"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Background="#FFF8E1" CornerRadius="6" Padding="10" Margin="0,4,0,12">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Marže: " FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding MarzeKc, StringFormat=N2}"/>
+                                <TextBlock Text=" Kč  ("/>
+                                <TextBlock Text="{Binding MarzeProcent, StringFormat=N1}"/>
+                                <TextBlock Text=" %)"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Margin="0,6,0,12"/>
+
+                        <TextBlock Text="Minimální stav (limit pro objednání)"/>
+                        <TextBox Text="{Binding MinimalniStav, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" Margin="0,2,0,10" Padding="6,4"/>
+
+                        <TextBlock Text="Dodavatel"/>
+                        <TextBox Text="{Binding Dodavatel, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,16" Padding="6,4"/>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Uložit"
+                                    Command="{Binding UlozitCommand}"
+                                    Padding="14,8" Background="#0078D4" Foreground="White"
+                                    BorderThickness="0" Cursor="Hand" FontWeight="SemiBold"/>
+                            <Button Content="Deaktivovat"
+                                    Command="{Binding DeaktivovatCommand}"
+                                    Margin="8,0,0,0" Padding="14,8" Background="#D13438" Foreground="White"
+                                    BorderThickness="0" Cursor="Hand"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
