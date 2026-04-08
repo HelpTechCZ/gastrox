@@ -1,0 +1,45 @@
+name: Build (CI)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & publish (Windows)
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore Gastrox.sln
+
+      - name: Build
+        run: dotnet build Gastrox.sln -c Release --no-restore
+
+      - name: Publish (single-file portable)
+        run: >
+          dotnet publish Gastrox/Gastrox.csproj
+          -c Release
+          -r win-x64
+          --self-contained false
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -o publish
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gastrox-${{ github.sha }}
+          path: publish/
+          retention-days: 14

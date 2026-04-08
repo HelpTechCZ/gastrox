@@ -1,0 +1,117 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'           # např. v0.1.0, v1.2.3
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Verze (např. 0.1.0)'
+        required: true
+        default: '0.1.0'
+
+permissions:
+  contents: write       # nutné pro vytvoření GitHub Release
+
+jobs:
+  build:
+    name: Build, sign & release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Extract version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.inputs.version || github.ref_name }}"
+          $ver = $tag -replace '^v', ''
+          echo "VERSION=$ver" >> $env:GITHUB_OUTPUT
+          Write-Host "Building version: $ver"
+
+      - name: Set version in .csproj
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.version.outputs.VERSION }}"
+          (Get-Content "Gastrox\Gastrox.csproj") `
+            -replace '<Version>.*?</Version>', "<Version>$ver</Version>" |
+            Set-Content "Gastrox\Gastrox.csproj"
+
+      - name: Restore
+        run: dotnet restore Gastrox.sln
+
+      - name: Publish (single-file portable, self-contained)
+        run: >
+          dotnet publish Gastrox/Gastrox.csproj
+          -c Release
+          -r win-x64
+          --self-contained
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:DebugType=none
+          -p:DebugSymbols=false
+          -o publish
+
+      # ------------------------------------------------------------------
+      # Code signing přes Azure Trusted Signing
+      # Stejné secrets jako v repu ServiDesk:
+      #   AZURE_TENANT_ID
+      #   AZURE_CLIENT_ID
+      #   AZURE_CLIENT_SECRET
+      #   AZURE_ENDPOINT
+      #   AZURE_SIGNING_ACCOUNT
+      #   AZURE_CERTIFICATE_PROFILE
+      # ------------------------------------------------------------------
+      - name: Sign with Azure Trusted Signing
+        uses: azure/trusted-signing-action@v0.5.0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: ${{ secrets.AZURE_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.AZURE_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ secrets.AZURE_CERTIFICATE_PROFILE }}
+          files-folder: ${{ github.workspace }}/publish
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      # ------------------------------------------------------------------
+      # Packaging
+      # ------------------------------------------------------------------
+      - name: Create ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive -Path publish\* -DestinationPath "Gastrox-${{ steps.version.outputs.VERSION }}-win-x64.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gastrox-${{ steps.version.outputs.VERSION }}
+          path: |
+            publish/Gastrox.exe
+            Gastrox-${{ steps.version.outputs.VERSION }}-win-x64.zip
+          retention-days: 7
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Gastrox ${{ steps.version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            Gastrox-${{ steps.version.outputs.VERSION }}-win-x64.zip
+            publish/Gastrox.exe
