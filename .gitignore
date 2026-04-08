@@ -1,0 +1,78 @@
+## ============================================
+## Visual Studio / .NET
+## ============================================
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Dd]ebug*/
+[Rr]elease*/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Oo]ut/
+[Ll]ibrary/
+
+# .NET build outputs
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Visual Studio cache
+.vs/
+.vscode/
+.idea/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Build results
+[Dd]ebugPublic/
+[Rr]eleases/
+publish/
+
+# Test results
+TestResult*.xml
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Roslyn analyzer / generators
+*.binlog
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+## ============================================
+## Aplikace Gastrox – běhová data
+## ============================================
+# Databáze (vytváří se vedle .exe – nesmí se commitovat)
+sklad.db
+sklad.db-journal
+sklad.db-wal
+sklad.db-shm
+*.db
+*.db-journal
+
+# Generované PDF reporty / exporty
+exports/
+reports/
+*.pdf
+*.xml.bak
+
+## ============================================
+## OS
+## ============================================
+.DS_Store
+Thumbs.db
+desktop.ini

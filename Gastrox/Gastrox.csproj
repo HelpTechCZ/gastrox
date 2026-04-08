@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Gastrox</RootNamespace>
+    <AssemblyName>Gastrox</AssemblyName>
+    <ApplicationIcon></ApplicationIcon>
+    <Version>0.1.0</Version>
+    <Company>HelpTech.cz</Company>
+    <Product>Gastrox</Product>
+    <Description>Portable skladový software pro restauraci</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- SQLite (bez nutnosti instalace serveru, plně portable) -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
+
+    <!-- PDF generování (tisk příjemek, výdejek, inventur) -->
+    <PackageReference Include="QuestPDF" Version="2024.7.3" />
+
+    <!-- MVVM pomocníci (ObservableObject, RelayCommand) – volitelné,
+         ale doporučené. Můžeš odebrat, pokud chceš mít vše vlastní. -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+
+    <!-- Ikony Material / Fluent – volitelné pro moderní UI -->
+    <PackageReference Include="MaterialDesignThemes" Version="5.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- SQL init skript zabalit do výstupu -->
+    <None Include="..\Database\init.sql" Link="Database\init.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

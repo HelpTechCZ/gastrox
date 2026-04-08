@@ -1,0 +1,183 @@
+<UserControl x:Class="Gastrox.Views.PrijemkaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:vm="clr-namespace:Gastrox.ViewModels"
+             xmlns:models="clr-namespace:Gastrox.Models"
+             FontFamily="Segoe UI"
+             FontSize="13">
+
+    <UserControl.DataContext>
+        <vm:PrijemkaViewModel/>
+    </UserControl.DataContext>
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- Hlavička dokladu -->
+            <RowDefinition Height="*"/>      <!-- DataGrid řádků -->
+            <RowDefinition Height="Auto"/>  <!-- Součty + tlačítka -->
+        </Grid.RowDefinitions>
+
+        <!-- ============ HLAVIČKA DOKLADU ============ -->
+        <Border Grid.Row="0" Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,12"
+                BorderBrush="#E0E0E0" BorderThickness="1">
+            <StackPanel>
+                <TextBlock Text="Nová příjemka" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,16"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                        <TextBlock Text="Číslo dokladu" Foreground="Gray" FontSize="11"/>
+                        <TextBox Text="{Binding CisloDokladu}" FontSize="14"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                        <TextBlock Text="Datum přijetí" Foreground="Gray" FontSize="11"/>
+                        <DatePicker SelectedDate="{Binding DatumPrijeti}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Margin="0,0,12,0">
+                        <TextBlock Text="Dodavatel" Foreground="Gray" FontSize="11"/>
+                        <TextBox Text="{Binding Dodavatel, UpdateSourceTrigger=PropertyChanged}" FontSize="14"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="3">
+                        <TextBlock Text="Číslo faktury / DL" Foreground="Gray" FontSize="11"/>
+                        <TextBox Text="{Binding CisloFaktury, UpdateSourceTrigger=PropertyChanged}" FontSize="14"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- ============ ŘÁDKY – DATAGRID ============ -->
+        <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="12"
+                BorderBrush="#E0E0E0" BorderThickness="1">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                    <TextBlock Text="Řádky dokladu" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <Button Content="+ Přidat řádek"
+                            Margin="16,0,0,0"
+                            Command="{Binding PridatRadekCommand}"
+                            Style="{StaticResource MaterialDesignFlatButton}"/>
+                </StackPanel>
+
+                <DataGrid ItemsSource="{Binding Radky}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          RowHeight="44"
+                          FontSize="13">
+                    <DataGrid.Columns>
+
+                        <!-- Zboží – našeptávač -->
+                        <DataGridTemplateColumn Header="Zboží" Width="2*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox ItemsSource="{Binding DataContext.DostupneZbozi,
+                                                                     RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                              SelectedItem="{Binding VybraneZbozi, UpdateSourceTrigger=PropertyChanged}"
+                                              DisplayMemberPath="Nazev"
+                                              IsEditable="True"
+                                              IsTextSearchEnabled="True"
+                                              TextSearch.TextPath="Nazev"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="Balení"
+                                            Binding="{Binding TypBaleni}"
+                                            IsReadOnly="True"
+                                            Width="*"/>
+
+                        <!-- Počet balení – live přepočet -->
+                        <DataGridTextColumn Header="Počet balení"
+                                            Binding="{Binding PocetBaleni, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                            Width="*"/>
+
+                        <!-- Automatický přepočet – READ ONLY, aktualizuje se v reálném čase -->
+                        <DataGridTextColumn Header="Přepočet"
+                                            Binding="{Binding ZobrazeniPrepoctu}"
+                                            IsReadOnly="True"
+                                            Width="2*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#0066CC"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Stav (ev. j.)"
+                                            Binding="{Binding MnozstviEvidencni, StringFormat=N2}"
+                                            IsReadOnly="True"
+                                            Width="*"/>
+
+                        <DataGridTextColumn Header="Nák. cena / bal. bez DPH"
+                                            Binding="{Binding NakupniCenaBezDPH, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                            Width="*"/>
+
+                        <DataGridTextColumn Header="DPH %"
+                                            Binding="{Binding SazbaDPH, StringFormat=N0}"
+                                            Width="Auto"/>
+
+                        <DataGridTextColumn Header="Celkem bez DPH"
+                                            Binding="{Binding CelkemBezDPH, StringFormat=N2}"
+                                            IsReadOnly="True"
+                                            Width="*"/>
+
+                        <DataGridTemplateColumn Width="60">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="×"
+                                            FontSize="18"
+                                            Command="{Binding DataContext.OdebratRadekCommand,
+                                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignFlatButton}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+
+        <!-- ============ SOUČTY + ULOŽIT ============ -->
+        <Border Grid.Row="2" Background="White" CornerRadius="12" Padding="20" Margin="0,12,0,0"
+                BorderBrush="#E0E0E0" BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Celkem bez DPH: " FontSize="16"/>
+                    <TextBlock Text="{Binding CelkemBezDPH, StringFormat={}{0:N2} Kč}" FontSize="16" FontWeight="Bold"/>
+
+                    <TextBlock Text="     Celkem s DPH: " FontSize="16" Margin="24,0,0,0"/>
+                    <TextBlock Text="{Binding CelkemSDPH, StringFormat={}{0:N2} Kč}" FontSize="16" FontWeight="Bold" Foreground="#0066CC"/>
+                </StackPanel>
+
+                <Button Grid.Column="1"
+                        Content="Uložit příjemku"
+                        Command="{Binding UlozitCommand}"
+                        Padding="24,10"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Background="#0066CC"
+                        Foreground="White"
+                        BorderThickness="0"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
