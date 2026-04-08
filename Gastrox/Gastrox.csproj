@@ -9,7 +9,7 @@
     <RootNamespace>Gastrox</RootNamespace>
     <AssemblyName>Gastrox</AssemblyName>
     <ApplicationIcon></ApplicationIcon>
-    <Version>0.4.3</Version>
+    <Version>0.4.4</Version>
     <Company>HelpTech.cz</Company>
     <Product>Gastrox</Product>
     <Description>Portable skladový software pro restauraci</Description>

@@ -87,21 +87,33 @@
                               AlternatingRowBackground="#FAFAFA">
                         <DataGrid.CellStyle>
                             <Style TargetType="DataGridCell">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                                 <Setter Property="Padding" Value="6,0"/>
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                             </Style>
                         </DataGrid.CellStyle>
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="{x:Type dgp:DataGridColumnHeader}">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="Padding" Value="6,4"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                <Setter Property="BorderBrush" Value="#E0E0E0"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Resources>
                             <Style x:Key="NumericCell" TargetType="TextBlock">
-                                <Setter Property="HorizontalAlignment" Value="Right"/>
-                                <Setter Property="Margin" Value="0,0,8,0"/>
+                                <Setter Property="TextAlignment" Value="Center"/>
                                 <Setter Property="VerticalAlignment" Value="Center"/>
                             </Style>
                             <Style x:Key="NumericHeader" TargetType="{x:Type dgp:DataGridColumnHeader}">
-                                <Setter Property="HorizontalContentAlignment" Value="Right"/>
-                                <Setter Property="Padding" Value="6,4,8,4"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="Padding" Value="6,4"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
                             </Style>
                         </DataGrid.Resources>
@@ -113,7 +125,7 @@
                                                 ElementStyle="{StaticResource NumericCell}"
                                                 HeaderStyle="{StaticResource NumericHeader}">
                                 <DataGridTextColumn.Header>
-                                    <TextBlock Text="Stav" TextAlignment="Right"/>
+                                    <TextBlock Text="Stav" TextAlignment="Center"/>
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
                             <DataGridTextColumn Header="EJ"        Binding="{Binding EvidencniJednotka}" Width="44"/>
@@ -122,7 +134,7 @@
                                                 ElementStyle="{StaticResource NumericCell}"
                                                 HeaderStyle="{StaticResource NumericHeader}">
                                 <DataGridTextColumn.Header>
-                                    <TextBlock Text="Min." TextAlignment="Right"/>
+                                    <TextBlock Text="Min." TextAlignment="Center"/>
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
 
@@ -131,7 +143,7 @@
                                                 ElementStyle="{StaticResource NumericCell}"
                                                 HeaderStyle="{StaticResource NumericHeader}">
                                 <DataGridTextColumn.Header>
-                                    <TextBlock TextAlignment="Right">Nákup za j.<LineBreak/>bez DPH</TextBlock>
+                                    <TextBlock TextAlignment="Center">Nákup za j.<LineBreak/>bez DPH</TextBlock>
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
                             <DataGridTextColumn Binding="{Binding HodnotaNakupBezDPH, StringFormat=N2}"
@@ -139,7 +151,7 @@
                                                 ElementStyle="{StaticResource NumericCell}"
                                                 HeaderStyle="{StaticResource NumericHeader}">
                                 <DataGridTextColumn.Header>
-                                    <TextBlock TextAlignment="Right">Nákup celkem<LineBreak/>bez DPH</TextBlock>
+                                    <TextBlock TextAlignment="Center">Nákup celkem<LineBreak/>bez DPH</TextBlock>
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
                             <DataGridTextColumn Binding="{Binding ProdejniCenaZaJednotkuSDPH, StringFormat=N2}"
@@ -147,7 +159,7 @@
                                                 ElementStyle="{StaticResource NumericCell}"
                                                 HeaderStyle="{StaticResource NumericHeader}">
                                 <DataGridTextColumn.Header>
-                                    <TextBlock TextAlignment="Right">Prodej za j.<LineBreak/>s DPH</TextBlock>
+                                    <TextBlock TextAlignment="Center">Prodej za j.<LineBreak/>s DPH</TextBlock>
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
                             <DataGridTextColumn Binding="{Binding HodnotaProdejSDPH, StringFormat=N2}"
@@ -155,7 +167,7 @@
                                                 ElementStyle="{StaticResource NumericCell}"
                                                 HeaderStyle="{StaticResource NumericHeader}">
                                 <DataGridTextColumn.Header>
-                                    <TextBlock TextAlignment="Right">Prodej celkem<LineBreak/>s DPH</TextBlock>
+                                    <TextBlock TextAlignment="Center">Prodej celkem<LineBreak/>s DPH</TextBlock>
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
                         </DataGrid.Columns>
