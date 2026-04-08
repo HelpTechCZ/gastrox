@@ -16,7 +16,7 @@
 
         <!-- Hlavička -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
-            <TextBlock Text="Skladové karty" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <TextBlock Text="Sklad" FontSize="24" FontWeight="SemiBold" VerticalAlignment="Center"/>
             <Button Content="+ Nová karta"
                     Command="{Binding NovaKartaCommand}"
                     Margin="24,0,0,0" Padding="14,8" Background="#0078D4" Foreground="White"
@@ -83,6 +83,14 @@
                               BorderThickness="0"
                               RowHeight="32"
                               AlternatingRowBackground="#FAFAFA">
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="Padding" Value="6,0"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                            </Style>
+                        </DataGrid.CellStyle>
                         <DataGrid.Resources>
                             <Style x:Key="NumericCell" TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Right"/>
