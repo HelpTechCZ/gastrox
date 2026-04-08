@@ -1,5 +1,8 @@
+using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
+using System.Windows.Data;
 using System.Windows.Input;
 using Gastrox.Commands;
 using Gastrox.Models;
@@ -15,6 +18,28 @@ public class SkladViewModel : ViewModelBase
 {
     // ---------- Seznam ----------
     public ObservableCollection<SkladovaKarta> Karty { get; } = new();
+
+    /// <summary>Filtrovaný/vyhledatelný pohled na Karty (binduje se DataGridem).</summary>
+    public ICollectionView KartyView { get; }
+
+    private const string FiltrVse = "(Všechny)";
+
+    /// <summary>Možnosti pro filtr kategorií = "(Všechny)" + reálné kategorie.</summary>
+    public ObservableCollection<string> KategorieFiltr { get; } = new();
+
+    private string _vybranaFiltrKategorie = FiltrVse;
+    public string VybranaFiltrKategorie
+    {
+        get => _vybranaFiltrKategorie;
+        set { if (SetProperty(ref _vybranaFiltrKategorie, value)) KartyView?.Refresh(); }
+    }
+
+    private string _hledanyText = string.Empty;
+    public string HledanyText
+    {
+        get => _hledanyText;
+        set { if (SetProperty(ref _hledanyText, value)) KartyView?.Refresh(); }
+    }
 
     /// <summary>Pohyby pro aktuálně vybranou kartu (deník / historie).</summary>
     public ObservableCollection<PohybSkladu> Pohyby { get; } = new();
@@ -136,6 +161,10 @@ public class SkladViewModel : ViewModelBase
         NacistCiselniky();
         NacistSeznam();
 
+        KartyView = CollectionViewSource.GetDefaultView(Karty);
+        KartyView.Filter = FiltrujKartu;
+        NaplnKategorieFiltr();
+
         NovaKartaCommand = new RelayCommand(_ =>
         {
             VybranaKarta = null;
@@ -170,6 +199,36 @@ public class SkladViewModel : ViewModelBase
         Karty.Clear();
         foreach (var k in DatabaseService.LoadAktivniKarty())
             Karty.Add(k);
+    }
+
+    private void NaplnKategorieFiltr()
+    {
+        KategorieFiltr.Clear();
+        KategorieFiltr.Add(FiltrVse);
+        foreach (var k in Kategorie)
+            KategorieFiltr.Add(k.Nazev);
+
+        // Pokud zmizela aktuálně zvolená, vrátit se na "(Všechny)"
+        if (!KategorieFiltr.Contains(_vybranaFiltrKategorie))
+            VybranaFiltrKategorie = FiltrVse;
+    }
+
+    private bool FiltrujKartu(object obj)
+    {
+        if (obj is not SkladovaKarta k) return false;
+
+        if (_vybranaFiltrKategorie != FiltrVse && k.Kategorie != _vybranaFiltrKategorie)
+            return false;
+
+        if (!string.IsNullOrWhiteSpace(_hledanyText))
+        {
+            var q = _hledanyText.Trim();
+            var nazevMatch = (k.Nazev?.IndexOf(q, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0;
+            var eanMatch   = (k.EAN?.IndexOf(q, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0;
+            if (!nazevMatch && !eanMatch) return false;
+        }
+
+        return true;
     }
 
     private void NacistPohyby(int kartaId)

@@ -29,25 +29,69 @@
                 <ColumnDefinition Width="420"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Seznam karet -->
+            <!-- Seznam karet (s filtrem nahoře) -->
             <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="0" Margin="0,0,16,0">
-                <DataGrid ItemsSource="{Binding Karty}"
-                          SelectedItem="{Binding VybranaKarta}"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="True"
-                          GridLinesVisibility="Horizontal"
-                          HeadersVisibility="Column"
-                          BorderThickness="0"
-                          RowHeight="32"
-                          AlternatingRowBackground="#FAFAFA">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Název"     Binding="{Binding Nazev}"            Width="*"/>
-                        <DataGridTextColumn Header="Kategorie" Binding="{Binding Kategorie}"        Width="120"/>
-                        <DataGridTextColumn Header="Stav"      Binding="{Binding AktualniStavEvidencni, StringFormat=N2}" Width="80"/>
-                        <DataGridTextColumn Header="EJ"        Binding="{Binding EvidencniJednotka}" Width="50"/>
-                        <DataGridTextColumn Header="Min."      Binding="{Binding MinimalniStav, StringFormat=N2}" Width="60"/>
-                    </DataGrid.Columns>
-                </DataGrid>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Filtr panel -->
+                    <Grid Grid.Row="0" Margin="12,12,12,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding HledanyText, UpdateSourceTrigger=PropertyChanged}"
+                                 Padding="8,6"
+                                 ToolTip="Hledat v názvu nebo EAN"
+                                 VerticalContentAlignment="Center">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Style.Resources>
+                                        <VisualBrush x:Key="placeholder" TileMode="None" Stretch="None" AlignmentX="Left">
+                                            <VisualBrush.Visual>
+                                                <TextBlock Text="🔍 Hledat (název nebo EAN)…" Foreground="#999" Margin="4,0,0,0"/>
+                                            </VisualBrush.Visual>
+                                        </VisualBrush>
+                                    </Style.Resources>
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="">
+                                            <Setter Property="Background" Value="{StaticResource placeholder}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                        <ComboBox Grid.Column="2"
+                                  ItemsSource="{Binding KategorieFiltr}"
+                                  SelectedItem="{Binding VybranaFiltrKategorie}"
+                                  Padding="8,6"
+                                  ToolTip="Filtr kategorie"/>
+                    </Grid>
+
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding KartyView}"
+                              SelectedItem="{Binding VybranaKarta}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              GridLinesVisibility="Horizontal"
+                              HeadersVisibility="Column"
+                              BorderThickness="0"
+                              RowHeight="32"
+                              AlternatingRowBackground="#FAFAFA">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Název"     Binding="{Binding Nazev}"            Width="*"/>
+                            <DataGridTextColumn Header="Kategorie" Binding="{Binding Kategorie}"        Width="120"/>
+                            <DataGridTextColumn Header="Stav"      Binding="{Binding AktualniStavEvidencni, StringFormat=N2}" Width="80"/>
+                            <DataGridTextColumn Header="EJ"        Binding="{Binding EvidencniJednotka}" Width="50"/>
+                            <DataGridTextColumn Header="Min."      Binding="{Binding MinimalniStav, StringFormat=N2}" Width="60"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
             </Border>
 
             <!-- Formulář -->
