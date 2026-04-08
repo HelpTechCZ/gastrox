@@ -10,6 +10,21 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.4.7] — 2026-04-08
+
+### Změněno
+- **Sklad:** finální zarovnání sloupců DataGridu:
+  - **Textové sloupce** (Název, Kategorie, EJ) — zarovnány **vlevo** (buňky i záhlaví)
+  - **Numerické sloupce** (Stav, Min., Nákup za j., Nákup celkem, Prodej za j., Prodej celkem) — zarovnány **vpravo** (buňky i záhlaví)
+  - Vertikální zarovnání: všechny buňky na středu (zachováno z 0.4.6)
+- Rozdělený `CellText` styl (TextAlignment=Left, margin 2 vlevo) a `NumericCell` styl (TextAlignment=Right, margin 8 vpravo) pro čistý vizuální dojem.
+
+### Soubory
+- `Gastrox/Views/SkladView.xaml`
+- `Gastrox/Gastrox.csproj`
+
+---
+
 ## [0.4.6] — 2026-04-08
 
 ### Opraveno
@@ -164,7 +179,8 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
-[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.6...HEAD
+[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.7...HEAD
+[0.4.7]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.6...v0.4.7
 [0.4.6]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.5...v0.4.6
 [0.4.5]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.4...v0.4.5
 [0.4.4]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.3...v0.4.4
