@@ -48,14 +48,13 @@ jobs:
       - name: Restore
         run: dotnet restore Gastrox.sln
 
-      - name: Publish (single-file portable, self-contained)
+      - name: Publish (folder, self-contained)
         run: >
           dotnet publish Gastrox/Gastrox.csproj
           -c Release
           -r win-x64
           --self-contained
-          -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:PublishSingleFile=false
           -p:DebugType=none
           -p:DebugSymbols=false
           -o publish
@@ -70,7 +69,7 @@ jobs:
       #   AZURE_SIGNING_ACCOUNT
       #   AZURE_CERTIFICATE_PROFILE
       # ------------------------------------------------------------------
-      - name: Sign with Azure Trusted Signing
+      - name: Sign Gastrox.exe with Azure Trusted Signing
         uses: azure/trusted-signing-action@v0.5.0
         with:
           azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -79,8 +78,8 @@ jobs:
           endpoint: ${{ secrets.AZURE_ENDPOINT }}
           trusted-signing-account-name: ${{ secrets.AZURE_SIGNING_ACCOUNT }}
           certificate-profile-name: ${{ secrets.AZURE_CERTIFICATE_PROFILE }}
-          files-folder: ${{ github.workspace }}/publish
-          files-folder-filter: exe
+          files: |
+            ${{ github.workspace }}/publish/Gastrox.exe
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
@@ -97,9 +96,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Gastrox-${{ steps.version.outputs.VERSION }}
-          path: |
-            publish/Gastrox.exe
-            Gastrox-${{ steps.version.outputs.VERSION }}-win-x64.zip
+          path: Gastrox-${{ steps.version.outputs.VERSION }}-win-x64.zip
           retention-days: 7
 
       - name: Create GitHub Release
@@ -111,6 +108,4 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
-          files: |
-            Gastrox-${{ steps.version.outputs.VERSION }}-win-x64.zip
-            publish/Gastrox.exe
+          files: Gastrox-${{ steps.version.outputs.VERSION }}-win-x64.zip
