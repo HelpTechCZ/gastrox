@@ -48,6 +48,8 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="16"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
                 <Button x:Name="BtnNaskladnit" Grid.Column="0" Style="{StaticResource ActionTile}"
@@ -74,6 +76,15 @@
                         <TextBlock Text="📋" FontSize="48"/>
                         <TextBlock Text="Inventura" FontSize="22" FontWeight="SemiBold" Margin="0,12,0,0"/>
                         <TextBlock Text="Fyzická kontrola stavů" Foreground="#666" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnNovaKarta" Grid.Column="6" Style="{StaticResource ActionTile}"
+                        Click="NovaKarta_Click" Height="180">
+                    <StackPanel>
+                        <TextBlock Text="➕" FontSize="48"/>
+                        <TextBlock Text="Nová karta" FontSize="22" FontWeight="SemiBold" Margin="0,12,0,0"/>
+                        <TextBlock Text="Založit novou skladovou kartu" Foreground="#666" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Button>
             </Grid>

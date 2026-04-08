@@ -61,7 +61,9 @@
 
                         <TextBlock Text="Kategorie"/>
                         <ComboBox ItemsSource="{Binding Kategorie}"
-                                  SelectedItem="{Binding Kategorie_Sel}"
+                                  DisplayMemberPath="Nazev"
+                                  SelectedValuePath="Nazev"
+                                  SelectedValue="{Binding Kategorie_Sel}"
                                   Margin="0,2,0,10" Padding="6,4"/>
 
                         <TextBlock Text="EAN"/>
@@ -147,6 +149,33 @@
                                     Margin="8,0,0,0" Padding="14,8" Background="#D13438" Foreground="White"
                                     BorderThickness="0" Cursor="Hand"/>
                         </StackPanel>
+
+                        <Border BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Margin="0,16,0,12"/>
+
+                        <TextBlock Text="Pohyby na kartě" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+
+                        <TextBlock Text="Vyberte kartu v seznamu pro zobrazení historie pohybů."
+                                   Foreground="#888"
+                                   Visibility="{Binding MaPohyby, Converter={StaticResource BoolToInverseVisConv}}"/>
+
+                        <DataGrid ItemsSource="{Binding Pohyby}"
+                                  Visibility="{Binding MaPohyby, Converter={StaticResource BoolToVisConv}}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="0"
+                                  RowHeight="28"
+                                  MaxHeight="320"
+                                  AlternatingRowBackground="#FAFAFA">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Datum"   Binding="{Binding Datum, StringFormat=\{0:dd.MM.yyyy HH:mm\}}" Width="120"/>
+                                <DataGridTextColumn Header="Typ"     Binding="{Binding TypPohybuLabel}" Width="80"/>
+                                <DataGridTextColumn Header="Množ."   Binding="{Binding MnozstviText}"   Width="70"/>
+                                <DataGridTextColumn Header="Stav po" Binding="{Binding StavPoPohybu, StringFormat=N2}" Width="70"/>
+                                <DataGridTextColumn Header="Doklad"  Binding="{Binding DokladTyp}"      Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
                     </StackPanel>
                 </ScrollViewer>
             </Border>

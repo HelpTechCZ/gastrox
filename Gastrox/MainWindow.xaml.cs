@@ -50,7 +50,16 @@ public partial class MainWindow : Window
         dash.NaskladnitClicked += (_, __) => ShowNaskladnit();
         dash.VyskladnitClicked += (_, __) => ShowVyskladnit();
         dash.InventuraClicked  += (_, __) => ShowInventura();
+        dash.NovaKartaClicked  += (_, __) => ShowSkladNovaKarta();
         MainContent.Content = dash;
+    }
+
+    private void ShowSkladNovaKarta()
+    {
+        var v = new SkladView();
+        if (v.DataContext is ViewModels.SkladViewModel svm && svm.NovaKartaCommand.CanExecute(null))
+            svm.NovaKartaCommand.Execute(null);
+        MainContent.Content = v;
     }
 
     private void ShowNaskladnit()

@@ -136,6 +136,56 @@
                 </Border>
             </TabItem>
 
+            <!-- TAB KATEGORIE -->
+            <TabItem Header="Kategorie">
+                <Border Background="White" CornerRadius="14" Padding="24" Margin="0,8,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="320"/>
+                        </Grid.ColumnDefinitions>
+
+                        <DataGrid Grid.Column="0"
+                                  ItemsSource="{Binding Kategorie}"
+                                  SelectedItem="{Binding VybranaKategorie}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  Margin="0,0,16,0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Pořadí" Binding="{Binding Poradi}" Width="80"/>
+                                <DataGridTextColumn Header="Název" Binding="{Binding Nazev}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Přidat kategorii" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+                            <TextBlock Text="Název"/>
+                            <TextBox Text="{Binding NovaKategorieNazev, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,4,0,10" Padding="8,6"/>
+
+                            <TextBlock Text="Pořadí (nižší = výš v seznamu)"/>
+                            <TextBox Text="{Binding NovaKategoriePoradi, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,4,0,16" Padding="8,6"/>
+
+                            <Button Content="+ Přidat"
+                                    Command="{Binding PridatKategoriiCommand}"
+                                    Padding="14,8" Background="#0078D4" Foreground="White"
+                                    BorderThickness="0" HorizontalAlignment="Left" FontWeight="SemiBold"/>
+
+                            <Border Margin="0,16,0,16" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0"/>
+
+                            <Button Content="Deaktivovat vybranou"
+                                    Command="{Binding DeaktivovatKategoriiCommand}"
+                                    Padding="14,8" Background="#D13438" Foreground="White"
+                                    BorderThickness="0" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </TabItem>
+
             <!-- TAB AKTUALIZACE -->
             <TabItem Header="Aktualizace">
                 <Border Background="White" CornerRadius="14" Padding="24" Margin="0,8,0,0">

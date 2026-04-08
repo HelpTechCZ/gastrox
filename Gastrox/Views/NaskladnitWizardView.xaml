@@ -66,80 +66,151 @@
                              Padding="8,6" AcceptsReturn="True" Height="60" TextWrapping="Wrap"/>
                 </StackPanel>
 
-                <!-- Krok 2 – položky -->
+                <!-- Krok 2 – položky (kartová layout, čitelná pro provozního) -->
                 <Grid Visibility="{Binding JeKrok2, Converter={StaticResource BoolToVisConv}}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
                         <TextBlock Text="Položky příjmu" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        <Button Content="+ Přidat řádek" Command="{Binding PridatRadekCommand}"
-                                Margin="16,0,0,0" Padding="10,6"/>
+                        <Button Content="+ Přidat položku" Command="{Binding PridatRadekCommand}"
+                                Margin="16,0,0,0" Padding="14,8"
+                                Background="#0078D4" Foreground="White"
+                                BorderThickness="0" FontWeight="SemiBold" Cursor="Hand"/>
                     </StackPanel>
 
-                    <DataGrid Grid.Row="1"
-                              ItemsSource="{Binding Radky}"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False"
-                              HeadersVisibility="Column"
-                              GridLinesVisibility="Horizontal"
-                              RowHeight="44">
-                        <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="Zboží" Width="2*">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <ComboBox ItemsSource="{Binding DataContext.DostupneZbozi,
-                                                                         RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                  SelectedItem="{Binding VybraneZbozi, UpdateSourceTrigger=PropertyChanged}"
-                                                  DisplayMemberPath="Nazev"
-                                                  IsEditable="True" IsTextSearchEnabled="True"
-                                                  TextSearch.TextPath="Nazev"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Radky}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#F8F9FB" BorderBrush="#E1E5EA" BorderThickness="1"
+                                            CornerRadius="10" Padding="16" Margin="0,0,0,12">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-                            <DataGridTextColumn Header="Balení" Binding="{Binding TypBaleni}" IsReadOnly="True" Width="*"/>
-                            <DataGridTextColumn Header="Počet balení"
-                                                Binding="{Binding PocetBaleni, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
-                                                Width="*"/>
-                            <DataGridTextColumn Header="Přepočet"
-                                                Binding="{Binding ZobrazeniPrepoctu}"
-                                                IsReadOnly="True" Width="2*">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="#0066CC"/>
-                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Cena/bal. bez DPH"
-                                                Binding="{Binding NakupniCenaBezDPH, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
-                                                Width="*"/>
-                            <DataGridTemplateColumn Header="DPH" Width="120">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <ComboBox ItemsSource="{Binding DostupneSazby}"
-                                                  SelectedItem="{Binding VybranaSazba, UpdateSourceTrigger=PropertyChanged}"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Celkem bez DPH"
-                                                Binding="{Binding CelkemBezDPH, StringFormat=N2}"
-                                                IsReadOnly="True" Width="*"/>
-                            <DataGridTemplateColumn Width="50">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Button Content="×" FontSize="16"
-                                                Command="{Binding DataContext.OdebratRadekCommand,
-                                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
+                                            <!-- Řádek 1: Zboží + Balení -->
+                                            <Grid Grid.Row="0" Grid.Column="0" Margin="0,0,0,12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="2*"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Zboží" Foreground="#666" FontSize="12"/>
+                                                    <ComboBox ItemsSource="{Binding DataContext.DostupneZbozi,
+                                                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                              SelectedItem="{Binding VybraneZbozi, UpdateSourceTrigger=PropertyChanged}"
+                                                              DisplayMemberPath="Nazev"
+                                                              IsEditable="True" IsTextSearchEnabled="True"
+                                                              TextSearch.TextPath="Nazev"
+                                                              Margin="0,4,0,0" Padding="8,6" FontSize="14"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2">
+                                                    <TextBlock Text="Balení" Foreground="#666" FontSize="12"/>
+                                                    <Border Background="White" BorderBrush="#E1E5EA" BorderThickness="1"
+                                                            CornerRadius="3" Padding="8,7" Margin="0,4,0,0">
+                                                        <TextBlock Text="{Binding TypBaleni}" FontSize="14"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- ✕ tlačítko v pravém horním rohu -->
+                                            <Button Grid.Row="0" Grid.Column="1"
+                                                    Content="✕" FontSize="14"
+                                                    Width="32" Height="32"
+                                                    Margin="12,0,0,0"
+                                                    VerticalAlignment="Top"
+                                                    Background="Transparent"
+                                                    Foreground="#D13438"
+                                                    BorderBrush="#E1E5EA" BorderThickness="1"
+                                                    Cursor="Hand"
+                                                    ToolTip="Odebrat položku"
+                                                    Command="{Binding DataContext.OdebratRadekCommand,
+                                                                       RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"/>
+
+                                            <!-- Řádek 2: Počet balení / Cena / DPH -->
+                                            <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="12"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="Počet balení" Foreground="#666" FontSize="12"/>
+                                                    <TextBox Text="{Binding PocetBaleni, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                                             Margin="0,4,0,0" Padding="8,7" FontSize="14"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2">
+                                                    <TextBlock Text="Cena za balení (bez DPH)" Foreground="#666" FontSize="12"/>
+                                                    <TextBox Text="{Binding NakupniCenaBezDPH, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                                             Margin="0,4,0,0" Padding="8,7" FontSize="14"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="4">
+                                                    <TextBlock Text="Sazba DPH" Foreground="#666" FontSize="12"/>
+                                                    <ComboBox ItemsSource="{Binding DostupneSazby}"
+                                                              SelectedItem="{Binding VybranaSazba, UpdateSourceTrigger=PropertyChanged}"
+                                                              Margin="0,4,0,0" Padding="8,6" FontSize="14"/>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Řádek 3: Přepočet + Celkem -->
+                                            <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                    <TextBlock Text="Přepočet: " Foreground="#666"/>
+                                                    <TextBlock Text="{Binding ZobrazeniPrepoctu}"
+                                                               Foreground="#0066CC" FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                    <TextBlock Text="Celkem bez DPH: " Foreground="#666"/>
+                                                    <TextBlock Text="{Binding CelkemBezDPH, StringFormat={}{0:N2} Kč}"
+                                                               FontWeight="Bold"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Průběžný součet pod seznamem -->
+                    <Border Grid.Row="2" Background="#F0F6FF" CornerRadius="8" Padding="14" Margin="0,12,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Položek: " Foreground="#666"/>
+                                <TextBlock Text="{Binding Radky.Count}" FontWeight="SemiBold"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Mezisoučet bez DPH: " Foreground="#666"/>
+                                <TextBlock Text="{Binding CelkemBezDPH, StringFormat={}{0:N2} Kč}" FontWeight="SemiBold" Margin="0,0,16,0"/>
+                                <TextBlock Text="s DPH: " Foreground="#666"/>
+                                <TextBlock Text="{Binding CelkemSDPH, StringFormat={}{0:N2} Kč}"
+                                           Foreground="#0066CC" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </Grid>
 
                 <!-- Krok 3 – souhrn -->

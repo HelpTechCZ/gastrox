@@ -310,6 +310,71 @@ public static class DatabaseService
     }
 
     // ----------------------------------------------------------------
+    // Kategorie zboží
+    // ----------------------------------------------------------------
+    public static List<Kategorie> LoadAktivniKategorie()
+    {
+        var list = new List<Kategorie>();
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT Id, Nazev, Poradi, Je_Aktivni
+              FROM Kategorie
+             WHERE Je_Aktivni = 1
+             ORDER BY Poradi, Nazev";
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            list.Add(new Kategorie
+            {
+                Id        = reader.GetInt32(0),
+                Nazev     = reader.GetString(1),
+                Poradi    = reader.GetInt32(2),
+                JeAktivni = reader.GetInt32(3) == 1
+            });
+        }
+        return list;
+    }
+
+    public static int SaveKategorie(Kategorie k)
+    {
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        if (k.Id == 0)
+        {
+            cmd.CommandText = @"
+                INSERT INTO Kategorie (Nazev, Poradi, Je_Aktivni)
+                VALUES ($nazev, $por, 1);
+                SELECT last_insert_rowid();";
+        }
+        else
+        {
+            cmd.CommandText = @"
+                UPDATE Kategorie
+                   SET Nazev = $nazev, Poradi = $por
+                 WHERE Id = $id;
+                SELECT $id;";
+            cmd.Parameters.AddWithValue("$id", k.Id);
+        }
+        cmd.Parameters.AddWithValue("$nazev", k.Nazev);
+        cmd.Parameters.AddWithValue("$por", k.Poradi);
+        var result = cmd.ExecuteScalar();
+        return Convert.ToInt32(result);
+    }
+
+    public static void DeactivateKategorie(int id)
+    {
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "UPDATE Kategorie SET Je_Aktivni = 0 WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$id", id);
+        cmd.ExecuteNonQuery();
+    }
+
+    // ----------------------------------------------------------------
     // Příjemka – uložení v transakci, aktualizace stavu skladu
     // ----------------------------------------------------------------
     public static int SavePrijemka(Prijemka p)
@@ -543,6 +608,43 @@ public static class DatabaseService
 
         tx.Commit();
         return (int)invId;
+    }
+
+    // ----------------------------------------------------------------
+    // Pohyby na kartě (deník / historie)
+    // ----------------------------------------------------------------
+    public static List<PohybSkladu> LoadPohybyKarty(int kartaId, int limit = 200)
+    {
+        var list = new List<PohybSkladu>();
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT Id, Datum, SkladovaKarta_Id, Typ_Pohybu,
+                   Mnozstvi_Evidencni, Stav_Po_Pohybu, Doklad_Typ, Doklad_Id
+              FROM PohybSkladu
+             WHERE SkladovaKarta_Id = $kid
+             ORDER BY Datum DESC, Id DESC
+             LIMIT $lim";
+        cmd.Parameters.AddWithValue("$kid", kartaId);
+        cmd.Parameters.AddWithValue("$lim", limit);
+
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            list.Add(new PohybSkladu
+            {
+                Id                = reader.GetInt32(0),
+                Datum             = DateTime.Parse(reader.GetString(1)),
+                SkladovaKartaId   = reader.GetInt32(2),
+                TypPohybu         = reader.GetString(3),
+                MnozstviEvidencni = (decimal)reader.GetDouble(4),
+                StavPoPohybu      = (decimal)reader.GetDouble(5),
+                DokladTyp         = reader.IsDBNull(6) ? null : reader.GetString(6),
+                DokladId          = reader.IsDBNull(7) ? null : reader.GetInt32(7)
+            });
+        }
+        return list;
     }
 
     // ----------------------------------------------------------------

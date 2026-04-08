@@ -187,3 +187,25 @@ WHERE NOT EXISTS (SELECT 1 FROM SazbaDPH WHERE Sazba = 12);
 INSERT INTO SazbaDPH (Sazba, Popis, Je_Vychozi, Je_Aktivni)
 SELECT 0, 'Nulová 0 %', 0, 1
 WHERE NOT EXISTS (SELECT 1 FROM SazbaDPH WHERE Sazba = 0);
+
+-- ---------------------------------------------------------------------
+-- KATEGORIE ZBOŽÍ (uživatelsky spravované v Nastavení)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS Kategorie (
+    Id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    Nazev       TEXT    NOT NULL UNIQUE,
+    Poradi      INTEGER NOT NULL DEFAULT 0,
+    Je_Aktivni  INTEGER NOT NULL DEFAULT 1
+);
+
+-- Defaultní kategorie (vloží se jen jednou, při prvním spuštění)
+INSERT INTO Kategorie (Nazev, Poradi, Je_Aktivni) SELECT 'Tvrdý alkohol', 10, 1 WHERE NOT EXISTS (SELECT 1 FROM Kategorie WHERE Nazev = 'Tvrdý alkohol');
+INSERT INTO Kategorie (Nazev, Poradi, Je_Aktivni) SELECT 'Pivo',          20, 1 WHERE NOT EXISTS (SELECT 1 FROM Kategorie WHERE Nazev = 'Pivo');
+INSERT INTO Kategorie (Nazev, Poradi, Je_Aktivni) SELECT 'Víno',          30, 1 WHERE NOT EXISTS (SELECT 1 FROM Kategorie WHERE Nazev = 'Víno');
+INSERT INTO Kategorie (Nazev, Poradi, Je_Aktivni) SELECT 'Nealko',        40, 1 WHERE NOT EXISTS (SELECT 1 FROM Kategorie WHERE Nazev = 'Nealko');
+INSERT INTO Kategorie (Nazev, Poradi, Je_Aktivni) SELECT 'Káva/Čaj',      50, 1 WHERE NOT EXISTS (SELECT 1 FROM Kategorie WHERE Nazev = 'Káva/Čaj');
+INSERT INTO Kategorie (Nazev, Poradi, Je_Aktivni) SELECT 'Maso',          60, 1 WHERE NOT EXISTS (SELECT 1 FROM Kategorie WHERE Nazev = 'Maso');
+INSERT INTO Kategorie (Nazev, Poradi, Je_Aktivni) SELECT 'Zelenina',      70, 1 WHERE NOT EXISTS (SELECT 1 FROM Kategorie WHERE Nazev = 'Zelenina');
+INSERT INTO Kategorie (Nazev, Poradi, Je_Aktivni) SELECT 'Pečivo',        80, 1 WHERE NOT EXISTS (SELECT 1 FROM Kategorie WHERE Nazev = 'Pečivo');
+INSERT INTO Kategorie (Nazev, Poradi, Je_Aktivni) SELECT 'Mléčné',        90, 1 WHERE NOT EXISTS (SELECT 1 FROM Kategorie WHERE Nazev = 'Mléčné');
+INSERT INTO Kategorie (Nazev, Poradi, Je_Aktivni) SELECT 'Ostatní',      100, 1 WHERE NOT EXISTS (SELECT 1 FROM Kategorie WHERE Nazev = 'Ostatní');

@@ -16,23 +16,35 @@ public class SkladViewModel : ViewModelBase
     // ---------- Seznam ----------
     public ObservableCollection<SkladovaKarta> Karty { get; } = new();
 
+    /// <summary>Pohyby pro aktuálně vybranou kartu (deník / historie).</summary>
+    public ObservableCollection<PohybSkladu> Pohyby { get; } = new();
+
+    public bool MaPohyby => Pohyby.Count > 0;
+
     private SkladovaKarta? _vybranaKarta;
     public SkladovaKarta? VybranaKarta
     {
         get => _vybranaKarta;
         set
         {
-            if (SetProperty(ref _vybranaKarta, value) && value is not null)
-                NacistDoFormulare(value);
+            if (SetProperty(ref _vybranaKarta, value))
+            {
+                if (value is not null)
+                {
+                    NacistDoFormulare(value);
+                    NacistPohyby(value.Id);
+                }
+                else
+                {
+                    Pohyby.Clear();
+                    OnPropertyChanged(nameof(MaPohyby));
+                }
+            }
         }
     }
 
     // ---------- Číselníky pro drop-downy ----------
-    public string[] Kategorie { get; } = new[]
-    {
-        "Tvrdý alkohol", "Pivo", "Víno", "Nealko", "Káva/Čaj",
-        "Maso", "Zelenina", "Pečivo", "Mléčné", "Ostatní"
-    };
+    public ObservableCollection<Kategorie> Kategorie { get; } = new();
 
     public string[] EvidencniJednotky { get; } = new[] { "Litr", "Kg", "Kus", "ml", "g" };
 
@@ -143,8 +155,14 @@ public class SkladViewModel : ViewModelBase
         foreach (var s in DatabaseService.LoadAktivniSazbyDph())
             DostupneSazby.Add(s);
 
-        // Defaultně předvybrat výchozí sazbu
+        Kategorie.Clear();
+        foreach (var k in DatabaseService.LoadAktivniKategorie())
+            Kategorie.Add(k);
+
+        // Defaultně předvybrat výchozí sazbu a první kategorii
         VybranaSazba = DostupneSazby.FirstOrDefault(s => s.JeVychozi) ?? DostupneSazby.FirstOrDefault();
+        if (string.IsNullOrEmpty(_kategorie) || Kategorie.All(k => k.Nazev != _kategorie))
+            Kategorie_Sel = Kategorie.FirstOrDefault()?.Nazev ?? string.Empty;
     }
 
     private void NacistSeznam()
@@ -152,6 +170,14 @@ public class SkladViewModel : ViewModelBase
         Karty.Clear();
         foreach (var k in DatabaseService.LoadAktivniKarty())
             Karty.Add(k);
+    }
+
+    private void NacistPohyby(int kartaId)
+    {
+        Pohyby.Clear();
+        foreach (var p in DatabaseService.LoadPohybyKarty(kartaId))
+            Pohyby.Add(p);
+        OnPropertyChanged(nameof(MaPohyby));
     }
 
     private void NacistDoFormulare(SkladovaKarta k)
@@ -174,7 +200,7 @@ public class SkladViewModel : ViewModelBase
     {
         _editId = 0;
         Nazev = string.Empty;
-        Kategorie_Sel = "Tvrdý alkohol";
+        Kategorie_Sel = Kategorie.FirstOrDefault()?.Nazev ?? string.Empty;
         EAN = null;
         EvidencniJednotka_Sel = "Litr";
         TypBaleni = string.Empty;

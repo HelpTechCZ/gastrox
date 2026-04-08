@@ -51,6 +51,18 @@ public class NastaveniViewModel : ViewModelBase
     private bool _novaJeVychozi;
     public bool NovaJeVychozi { get => _novaJeVychozi; set => SetProperty(ref _novaJeVychozi, value); }
 
+    // ---------- Kategorie ----------
+    public ObservableCollection<Kategorie> Kategorie { get; } = new();
+
+    private Kategorie? _vybranaKategorie;
+    public Kategorie? VybranaKategorie { get => _vybranaKategorie; set => SetProperty(ref _vybranaKategorie, value); }
+
+    private string _novaKategorieNazev = string.Empty;
+    public string NovaKategorieNazev { get => _novaKategorieNazev; set => SetProperty(ref _novaKategorieNazev, value); }
+
+    private int _novaKategoriePoradi;
+    public int NovaKategoriePoradi { get => _novaKategoriePoradi; set => SetProperty(ref _novaKategoriePoradi, value); }
+
     // ---------- Aktualizace ----------
     private bool _autoCheck = true;
     public bool AutoCheck { get => _autoCheck; set => SetProperty(ref _autoCheck, value); }
@@ -64,6 +76,8 @@ public class NastaveniViewModel : ViewModelBase
     public ICommand UlozitFirmuCommand { get; }
     public ICommand PridatSazbuCommand { get; }
     public ICommand DeaktivovatSazbuCommand { get; }
+    public ICommand PridatKategoriiCommand { get; }
+    public ICommand DeaktivovatKategoriiCommand { get; }
     public ICommand UlozitAktualizaceCommand { get; }
     public ICommand ZkontrolovatNynicommand { get; }
 
@@ -76,6 +90,10 @@ public class NastaveniViewModel : ViewModelBase
             _ => !string.IsNullOrWhiteSpace(NovaPopis));
         DeaktivovatSazbuCommand = new RelayCommand(_ => DeaktivujSazbu(),
             _ => VybranaSazba is not null);
+        PridatKategoriiCommand = new RelayCommand(_ => PridejKategorii(),
+            _ => !string.IsNullOrWhiteSpace(NovaKategorieNazev));
+        DeaktivovatKategoriiCommand = new RelayCommand(_ => DeaktivujKategorii(),
+            _ => VybranaKategorie is not null);
         UlozitAktualizaceCommand = new RelayCommand(_ => UlozAutoCheck());
         ZkontrolovatNynicommand = new RelayCommand(async _ => await ZkontrolovatNyniAsync());
     }
@@ -99,6 +117,13 @@ public class NastaveniViewModel : ViewModelBase
         Sazby.Clear();
         foreach (var s in DatabaseService.LoadAktivniSazbyDph())
             Sazby.Add(s);
+
+        Kategorie.Clear();
+        foreach (var k in DatabaseService.LoadAktivniKategorie())
+            Kategorie.Add(k);
+
+        // Po načtení doporučit další pořadí o 10 výš než maximum
+        NovaKategoriePoradi = Kategorie.Count == 0 ? 10 : (Kategorie.Max(k => k.Poradi) + 10);
     }
 
     private static string? Get(Dictionary<string, string> n, string klic)
@@ -139,6 +164,24 @@ public class NastaveniViewModel : ViewModelBase
     {
         if (VybranaSazba is null) return;
         DatabaseService.DeactivateSazbaDph(VybranaSazba.Id);
+        Nacti();
+    }
+
+    private void PridejKategorii()
+    {
+        DatabaseService.SaveKategorie(new Kategorie
+        {
+            Nazev = NovaKategorieNazev.Trim(),
+            Poradi = NovaKategoriePoradi
+        });
+        NovaKategorieNazev = string.Empty;
+        Nacti();
+    }
+
+    private void DeaktivujKategorii()
+    {
+        if (VybranaKategorie is null) return;
+        DatabaseService.DeactivateKategorie(VybranaKategorie.Id);
         Nacti();
     }
 
