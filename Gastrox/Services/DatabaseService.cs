@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Gastrox.Models;
 using Microsoft.Data.Sqlite;
 
@@ -19,14 +20,11 @@ public static class DatabaseService
 
     /// <summary>
     /// Vytvoří databázi a tabulky, pokud ještě neexistují.
+    /// SQL skript je zabalený jako embedded resource přímo v binárce.
     /// </summary>
     public static void Initialize()
     {
-        var sqlPath = Path.Combine(AppContext.BaseDirectory, "Database", "init.sql");
-        if (!File.Exists(sqlPath))
-            throw new FileNotFoundException("Chybí init.sql", sqlPath);
-
-        var script = File.ReadAllText(sqlPath);
+        var script = LoadInitScript();
 
         using var conn = new SqliteConnection(ConnectionString);
         conn.Open();
@@ -34,6 +32,23 @@ public static class DatabaseService
         using var cmd = conn.CreateCommand();
         cmd.CommandText = script;
         cmd.ExecuteNonQuery();
+    }
+
+    private static string LoadInitScript()
+    {
+        const string resourceName = "Gastrox.Database.init.sql";
+        var asm = Assembly.GetExecutingAssembly();
+
+        using var stream = asm.GetManifestResourceStream(resourceName);
+        if (stream is null)
+        {
+            var available = string.Join(", ", asm.GetManifestResourceNames());
+            throw new InvalidOperationException(
+                $"Embedded resource '{resourceName}' nenalezen. Dostupné: {available}");
+        }
+
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 
     // ----------------------------------------------------------------

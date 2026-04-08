@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using Gastrox.Views;
 
 namespace Gastrox;
@@ -11,16 +12,17 @@ public partial class MainWindow : Window
         MainContent.Content = new PrijemkaView();
     }
 
-    private void Dashboard_Click(object sender, RoutedEventArgs e)  => MainContent.Content = new TextBlock { Text = "Dashboard – TODO" };
-    private void Sklad_Click(object sender, RoutedEventArgs e)      => MainContent.Content = new TextBlock { Text = "Sklad – TODO" };
+    private void Dashboard_Click(object sender, RoutedEventArgs e)  => MainContent.Content = Placeholder("Dashboard – TODO");
+    private void Sklad_Click(object sender, RoutedEventArgs e)      => MainContent.Content = Placeholder("Sklad – TODO");
     private void Prijemky_Click(object sender, RoutedEventArgs e)   => MainContent.Content = new PrijemkaView();
-    private void Vydejky_Click(object sender, RoutedEventArgs e)    => MainContent.Content = new TextBlock { Text = "Výdejky – TODO" };
-    private void Inventury_Click(object sender, RoutedEventArgs e)  => MainContent.Content = new TextBlock { Text = "Inventury – TODO" };
-    private void Reporty_Click(object sender, RoutedEventArgs e)    => MainContent.Content = new TextBlock { Text = "Reporty – TODO" };
-}
+    private void Vydejky_Click(object sender, RoutedEventArgs e)    => MainContent.Content = Placeholder("Výdejky – TODO");
+    private void Inventury_Click(object sender, RoutedEventArgs e)  => MainContent.Content = Placeholder("Inventury – TODO");
+    private void Reporty_Click(object sender, RoutedEventArgs e)    => MainContent.Content = Placeholder("Reporty – TODO");
 
-// Dočasný stub, aby se projekt přeložil i bez vytvořených ostatních views
-internal class TextBlock : System.Windows.Controls.TextBlock
-{
-    public TextBlock() { FontSize = 24; Margin = new Thickness(24); }
+    private static TextBlock Placeholder(string text) => new()
+    {
+        Text = text,
+        FontSize = 24,
+        Margin = new Thickness(24)
+    };
 }

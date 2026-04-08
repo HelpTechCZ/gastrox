@@ -31,10 +31,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- SQL init skript zabalit do výstupu -->
-    <None Include="..\Database\init.sql" Link="Database\init.sql">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <!-- SQL init skript zabalit přímo do binárky jako embedded resource,
+         aby aplikace zůstala 100% portable i jako jediný .exe soubor. -->
+    <EmbeddedResource Include="..\Database\init.sql" Link="Database\init.sql"
+                      LogicalName="Gastrox.Database.init.sql" />
   </ItemGroup>
 
 </Project>
