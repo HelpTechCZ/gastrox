@@ -10,6 +10,17 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.4.6] — 2026-04-08
+
+### Opraveno
+- **Sklad:** skutečně fungující vertikální zarovnání textových buněk. Předchozí pokus (0.4.5) s implicit `TextBlock` stylem v `DataGrid.Resources` **nefungoval** — WPF generuje buňky `DataGridTextColumn` mimo logical tree DataGridu, takže implicit styly je minou. Správné řešení: pojmenovaný sdílený styl `CellText` aplikovaný přes `ElementStyle` na **každý** `DataGridTextColumn` (Název, Kategorie, EJ i všechny numerické).
+
+### Soubory
+- `Gastrox/Views/SkladView.xaml`
+- `Gastrox/Gastrox.csproj`
+
+---
+
 ## [0.4.5] — 2026-04-08
 
 ### Opraveno
@@ -153,7 +164,8 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
-[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.5...HEAD
+[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.6...HEAD
+[0.4.6]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.5...v0.4.6
 [0.4.5]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.4...v0.4.5
 [0.4.4]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.2...v0.4.3

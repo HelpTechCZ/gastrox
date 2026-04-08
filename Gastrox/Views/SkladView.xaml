@@ -106,18 +106,18 @@
                             </Style>
                         </DataGrid.ColumnHeaderStyle>
                         <DataGrid.Resources>
-                            <!-- Implicit styl pro všechny TextBloky v DataGridu:
-                                 vertikálně na střed + text centrovaný.
-                                 Důvod: WPF default VerticalAlignment na TextBlocku je Top,
-                                 takže bez toho spadnou texty v buňkách nahoru,
-                                 i když DataGridCell má VerticalContentAlignment="Center". -->
-                            <Style TargetType="TextBlock">
+                            <!-- Sdílený ElementStyle pro TEXT buňky všech sloupců.
+                                 POZOR: implicit styl v DataGrid.Resources se NEAPLIKUJE na cells
+                                 DataGridTextColumn – WPF je generuje mimo logical tree. Proto
+                                 musí být explicit pojmenovaný styl aplikovaný přes ElementStyle
+                                 na každý sloupec. -->
+                            <Style x:Key="CellText" TargetType="TextBlock">
                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                 <Setter Property="TextAlignment" Value="Center"/>
+                                <Setter Property="Margin" Value="0"/>
                             </Style>
-                            <!-- Zpětná kompatibilita – některé sloupce ještě odkazují na tento klíč.
-                                 Dědí z implicit TextBlock stylu výše (prázdný body je OK). -->
-                            <Style x:Key="NumericCell" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}"/>
+                            <!-- Numerické buňky = alias na CellText, pro budoucí divergenci (např. tabular figures). -->
+                            <Style x:Key="NumericCell" TargetType="TextBlock" BasedOn="{StaticResource CellText}"/>
                             <Style x:Key="NumericHeader" TargetType="{x:Type dgp:DataGridColumnHeader}">
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -126,8 +126,10 @@
                             </Style>
                         </DataGrid.Resources>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Název"     Binding="{Binding Nazev}"            Width="*" MinWidth="140"/>
-                            <DataGridTextColumn Header="Kategorie" Binding="{Binding Kategorie}"        Width="110"/>
+                            <DataGridTextColumn Header="Název"     Binding="{Binding Nazev}"            Width="*" MinWidth="140"
+                                                ElementStyle="{StaticResource CellText}"/>
+                            <DataGridTextColumn Header="Kategorie" Binding="{Binding Kategorie}"        Width="110"
+                                                ElementStyle="{StaticResource CellText}"/>
                             <DataGridTextColumn Binding="{Binding AktualniStavEvidencni, StringFormat=N2}"
                                                 Width="70"
                                                 ElementStyle="{StaticResource NumericCell}"
@@ -136,7 +138,8 @@
                                     <TextBlock Text="Stav" TextAlignment="Center"/>
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="EJ"        Binding="{Binding EvidencniJednotka}" Width="44"/>
+                            <DataGridTextColumn Header="EJ"        Binding="{Binding EvidencniJednotka}" Width="44"
+                                                ElementStyle="{StaticResource CellText}"/>
                             <DataGridTextColumn Binding="{Binding MinimalniStav, StringFormat=N2}"
                                                 Width="60"
                                                 ElementStyle="{StaticResource NumericCell}"
