@@ -10,6 +10,25 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.4.8] — 2026-04-09
+
+### Změněno
+- **Sklad:** zkompaktněno zobrazení jednotek — odstraněn samostatný sloupec **EJ**, jednotka se nyní zobrazuje přímo za hodnotou stavu (např. `50,00 l`, `10,00 kg`, `5,00 ks`).
+- Sloupce **Stav** a **Min.** nově bindují na formátované stringy `StavSJednotkou` a `MinimalniStavSJednotkou`.
+
+### Přidáno
+- **Model `SkladovaKarta`:** tři nové computed properties:
+  - `EvidencniJednotkaZkratka` — převod plného názvu na značku (`Litr`→`l`, `Kg`→`kg`, `Kus`→`ks`)
+  - `StavSJednotkou` — formátovaný stav se značkou (např. `50,00 l`)
+  - `MinimalniStavSJednotkou` — formátovaný min. stav se značkou
+
+### Soubory
+- `Gastrox/Models/SkladovaKarta.cs`
+- `Gastrox/Views/SkladView.xaml`
+- `Gastrox/Gastrox.csproj`
+
+---
+
 ## [0.4.7] — 2026-04-08
 
 ### Změněno
@@ -179,7 +198,8 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
-[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.7...HEAD
+[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.8...HEAD
+[0.4.8]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.7...v0.4.8
 [0.4.7]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.6...v0.4.7
 [0.4.6]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.5...v0.4.6
 [0.4.5]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.4...v0.4.5

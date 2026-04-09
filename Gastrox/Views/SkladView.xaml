@@ -133,18 +133,16 @@
                                                 ElementStyle="{StaticResource CellText}"/>
                             <DataGridTextColumn Header="Kategorie" Binding="{Binding Kategorie}"        Width="110"
                                                 ElementStyle="{StaticResource CellText}"/>
-                            <DataGridTextColumn Binding="{Binding AktualniStavEvidencni, StringFormat=N2}"
-                                                Width="70"
+                            <DataGridTextColumn Binding="{Binding StavSJednotkou}"
+                                                Width="100"
                                                 ElementStyle="{StaticResource NumericCell}"
                                                 HeaderStyle="{StaticResource NumericHeader}">
                                 <DataGridTextColumn.Header>
                                     <TextBlock Text="Stav" TextAlignment="Right"/>
                                 </DataGridTextColumn.Header>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="EJ"        Binding="{Binding EvidencniJednotka}" Width="44"
-                                                ElementStyle="{StaticResource CellText}"/>
-                            <DataGridTextColumn Binding="{Binding MinimalniStav, StringFormat=N2}"
-                                                Width="60"
+                            <DataGridTextColumn Binding="{Binding MinimalniStavSJednotkou}"
+                                                Width="90"
                                                 ElementStyle="{StaticResource NumericCell}"
                                                 HeaderStyle="{StaticResource NumericHeader}">
                                 <DataGridTextColumn.Header>

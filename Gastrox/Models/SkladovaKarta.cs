@@ -89,4 +89,29 @@ public class SkladovaKarta
     /// <summary>Marže v procentech ze cenového rozdílu (z prodejní ceny bez DPH).</summary>
     public decimal MarzeProcent
         => ProdejniCenaBezDPH > 0 ? Math.Round((MarzeKc / ProdejniCenaBezDPH) * 100m, 1) : 0m;
+
+    // ---- formátování pro výpisy ----
+
+    /// <summary>
+    /// Krátká značka evidenční jednotky pro zobrazení ve výpisech.
+    /// Litr → "l", Kg → "kg", Kus → "ks", cokoli jiného → první písmeno malé.
+    /// </summary>
+    public string EvidencniJednotkaZkratka => EvidencniJednotka switch
+    {
+        "Litr"     => "l",
+        "Litry"    => "l",
+        "Kg"       => "kg",
+        "Kilogram" => "kg",
+        "Kus"      => "ks",
+        "Kusy"     => "ks",
+        _          => EvidencniJednotka.ToLowerInvariant()
+    };
+
+    /// <summary>Formátovaný aktuální stav včetně zkratky jednotky (např. "50,00 l").</summary>
+    public string StavSJednotkou
+        => $"{AktualniStavEvidencni:N2} {EvidencniJednotkaZkratka}";
+
+    /// <summary>Formátovaný minimální stav včetně zkratky jednotky (např. "10,00 l").</summary>
+    public string MinimalniStavSJednotkou
+        => $"{MinimalniStav:N2} {EvidencniJednotkaZkratka}";
 }
