@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Threading;
 using Gastrox.Services;
@@ -9,8 +8,6 @@ namespace Gastrox;
 
 public partial class App : Application
 {
-    private const int MaxZaloh = 10;
-
     protected override void OnStartup(StartupEventArgs e)
     {
         // Globální handlery, aby aplikace neumřela tiše bez stopy.
@@ -32,36 +29,6 @@ public partial class App : Application
             ShowError("Chyba při startu aplikace", ex);
             Shutdown(1);
         }
-    }
-
-    protected override void OnExit(ExitEventArgs e)
-    {
-        try
-        {
-            CreateBackup();
-        }
-        catch { /* záloha nesmí zabránit ukončení */ }
-        base.OnExit(e);
-    }
-
-    private static void CreateBackup()
-    {
-        var dbPath = DatabaseService.DbPath;
-        if (!File.Exists(dbPath)) return;
-
-        var backupDir = Path.Combine(AppContext.BaseDirectory, "backup");
-        Directory.CreateDirectory(backupDir);
-
-        var fileName = $"backup_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.db";
-        File.Copy(dbPath, Path.Combine(backupDir, fileName), overwrite: true);
-
-        // Ponechat jen posledních N záloh
-        var files = Directory.GetFiles(backupDir, "backup_*.db")
-            .OrderByDescending(f => f)
-            .Skip(MaxZaloh)
-            .ToArray();
-        foreach (var old in files)
-            File.Delete(old);
     }
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

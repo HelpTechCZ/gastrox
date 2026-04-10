@@ -10,6 +10,13 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.8.2] — 2026-04-10
+
+### Upraveno
+- **Záloha při zavření:** záloha se provádí při zavření okna (Window_Closing) s potvrzovací hláškou zobrazující název zálohy. Odstraněna duplicitní tichá záloha z App.OnExit.
+
+---
+
 ## [0.8.1] — 2026-04-10
 
 ### Upraveno

@@ -9,7 +9,8 @@
         Background="#F3F3F3"
         FontFamily="Segoe UI"
         FontSize="13"
-        Loaded="Window_Loaded">
+        Loaded="Window_Loaded"
+        Closing="Window_Closing">
 
     <Window.Resources>
         <Style x:Key="MenuButton" TargetType="Button">

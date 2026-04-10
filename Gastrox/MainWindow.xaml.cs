@@ -1,4 +1,7 @@
 using System;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using Gastrox.Models;
 using Gastrox.Services;
@@ -81,6 +84,38 @@ public partial class MainWindow : Window
         var v = new UzaverkaView();
         v.Hotovo += ShowDashboard;
         MainContent.Content = v;
+    }
+
+    private void Window_Closing(object sender, CancelEventArgs e)
+    {
+        try
+        {
+            var dbPath = DatabaseService.DbPath;
+            if (!File.Exists(dbPath)) return;
+
+            var backupDir = Path.Combine(AppContext.BaseDirectory, "backup");
+            Directory.CreateDirectory(backupDir);
+
+            var fileName = $"backup_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.db";
+            var fullPath = Path.Combine(backupDir, fileName);
+            File.Copy(dbPath, fullPath, overwrite: true);
+
+            // Ponechat jen posledních 10 záloh
+            var old = Directory.GetFiles(backupDir, "backup_*.db")
+                .OrderByDescending(f => f)
+                .Skip(10)
+                .ToArray();
+            foreach (var f in old) File.Delete(f);
+
+            MessageBox.Show(
+                $"Záloha databáze byla vytvořena.\n\n{fileName}",
+                "Záloha hotova", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Záloha se nepodařila:\n" + ex.Message,
+                "Chyba zálohy", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     private void Dashboard_Click(object sender, RoutedEventArgs e)  => ShowDashboard();
