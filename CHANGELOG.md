@@ -10,6 +10,14 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.7.3] — 2026-04-10
+
+### Opraveno
+- **Ikona na ploše:** `{autodesktop}` (Public Desktop) nefungoval spolehlivě — přepnuto na `{userdesktop}` (plocha aktuálního uživatele). Ikona zástupce se bere přímo z `Gastrox.exe` (PE header) místo ze zvláštního `.ico` souboru.
+- **Instalátor:** přidáno `CloseApplications=force` do [Setup] a `/FORCECLOSEAPPLICATIONS` v auto-updatu pro spolehlivější aktualizaci.
+
+---
+
 ## [0.7.2] — 2026-04-10
 
 ### Opraveno

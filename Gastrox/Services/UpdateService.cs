@@ -135,7 +135,7 @@ public static class UpdateService
             Process.Start(new ProcessStartInfo
             {
                 FileName = downloadedFile,
-                Arguments = "/SILENT /CLOSEAPPLICATIONS",
+                Arguments = "/SILENT /FORCECLOSEAPPLICATIONS",
                 UseShellExecute = true,
                 Verb = "runas"    // UAC elevation
             });

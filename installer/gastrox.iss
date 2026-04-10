@@ -33,6 +33,7 @@ WizardStyle=modern
 WizardImageFile=wizard-sidebar.bmp
 WizardSmallImageFile=wizard-small.bmp
 PrivilegesRequired=admin
+CloseApplications=force
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableDirPage=no
@@ -47,10 +48,10 @@ Source: "..\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs cr
 Source: "gastrox.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-; Plocha — VŽDY (autodesktop = commondesktop nebo userdesktop podle oprávnění)
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\gastrox.ico"; Comment: "Evidence skladových zásob"
+; Plocha aktuálního uživatele — VŽDY (i při tiché instalaci/aktualizaci)
+Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName},0"; Comment: "Evidence skladových zásob"
 ; Start menu
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\gastrox.ico"; Comment: "Evidence skladových zásob"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName},0"; Comment: "Evidence skladových zásob"
 Name: "{group}\Odinstalovat {#MyAppName}"; Filename: "{uninstallexe}"
 
 [Run]
