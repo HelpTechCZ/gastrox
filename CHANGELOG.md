@@ -10,6 +10,13 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.9.1] — 2026-04-10
+
+### Upraveno
+- **Licenční server:** přestrukturování — admin přesunut do `/administrace/`, API do `/app/verify.php`, root je grafická status stránka s logem a odkazem na admin. CSRF tokeny na všech POST akcích, session regeneration po přihlášení.
+
+---
+
 ## [0.9.0] — 2026-04-10
 
 ### Přidáno

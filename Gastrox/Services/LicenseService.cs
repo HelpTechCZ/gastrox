@@ -20,7 +20,7 @@ public record LicenseInfo(
 /// </summary>
 public static class LicenseService
 {
-    private const string ApiUrl = "https://gastrox.helptech.app/api.php?action=validate";
+    private const string ApiUrl = "https://gastrox.helptech.app/app/verify.php";
     public const int DemoMaxKaret = 20;
 
     /// <summary>Aktuální stav licence (z cache). Null = ještě neověřeno.</summary>
