@@ -10,6 +10,13 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.8.1] — 2026-04-10
+
+### Upraveno
+- **Auto-záloha:** složka přejmenována na `backup/`, formát souboru `backup_2026-04-10_14-30-45.db`.
+
+---
+
 ## [0.8.0] — 2026-04-10
 
 ### Přidáno

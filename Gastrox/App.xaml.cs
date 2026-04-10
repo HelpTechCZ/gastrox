@@ -49,14 +49,14 @@ public partial class App : Application
         var dbPath = DatabaseService.DbPath;
         if (!File.Exists(dbPath)) return;
 
-        var backupDir = Path.Combine(AppContext.BaseDirectory, "Zálohy");
+        var backupDir = Path.Combine(AppContext.BaseDirectory, "backup");
         Directory.CreateDirectory(backupDir);
 
-        var fileName = $"sklad-{DateTime.Now:yyyy-MM-dd-HHmmss}.db";
+        var fileName = $"backup_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.db";
         File.Copy(dbPath, Path.Combine(backupDir, fileName), overwrite: true);
 
         // Ponechat jen posledních N záloh
-        var files = Directory.GetFiles(backupDir, "sklad-*.db")
+        var files = Directory.GetFiles(backupDir, "backup_*.db")
             .OrderByDescending(f => f)
             .Skip(MaxZaloh)
             .ToArray();
