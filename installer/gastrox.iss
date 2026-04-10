@@ -24,6 +24,7 @@ DefaultDirName={sd}\Gastrox
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 OutputBaseFilename=Gastrox-{#MyAppVersion}-setup
+; Ikona setup.exe souboru (generována v CI z grafika/ikona.png)
 SetupIconFile=gastrox.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2/ultra64
@@ -42,20 +43,21 @@ Name: "czech"; MessagesFile: "compiler:Languages\Czech.isl"
 [Files]
 ; Publish output (celá aplikace)
 Source: "..\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Ikona jako samostatný soubor (pro zástupce na ploše/Start menu)
+Source: "gastrox.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-; Plocha — VŽDY (bez podmínky Tasks)
-Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Comment: "Evidence skladových zásob"
+; Plocha — VŽDY (autodesktop = commondesktop nebo userdesktop podle oprávnění)
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\gastrox.ico"; Comment: "Evidence skladových zásob"
 ; Start menu
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Comment: "Evidence skladových zásob"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\gastrox.ico"; Comment: "Evidence skladových zásob"
 Name: "{group}\Odinstalovat {#MyAppName}"; Filename: "{uninstallexe}"
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [InstallDelete]
-; Vycistit stare soubory pred upgrade (ale NIKDY sklad.db!)
+; Vyčistit staré soubory před upgrade (ale NIKDY sklad.db!)
 Type: filesandordirs; Name: "{app}\*.dll"
 Type: filesandordirs; Name: "{app}\*.json"
 Type: filesandordirs; Name: "{app}\runtimes"
-Type: files; Name: "{app}\gastrox.ico"

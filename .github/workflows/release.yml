@@ -37,6 +37,64 @@ jobs:
           echo "VERSION=$ver" >> $env:GITHUB_OUTPUT
           Write-Host "Building version: $ver"
 
+      # ------------------------------------------------------------------
+      # Generování ICO z PNG na Windows (zaručeně kompatibilní formát)
+      # ------------------------------------------------------------------
+      - name: Generate gastrox.ico from PNG
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.Drawing
+          $src = [System.Drawing.Image]::FromFile("$PWD\grafika\ikona.png")
+          $sizes = @(16, 24, 32, 48, 64, 128, 256)
+          $ms = New-Object System.IO.MemoryStream
+
+          # ICO header
+          $bw = New-Object System.IO.BinaryWriter($ms)
+          $bw.Write([uint16]0)       # reserved
+          $bw.Write([uint16]1)       # type: ICO
+          $bw.Write([uint16]$sizes.Count)
+
+          # Vygenerovat každou velikost jako PNG data
+          $pngDataList = @()
+          foreach ($sz in $sizes) {
+              $bmp = New-Object System.Drawing.Bitmap($src, $sz, $sz)
+              $pngMs = New-Object System.IO.MemoryStream
+              $bmp.Save($pngMs, [System.Drawing.Imaging.ImageFormat]::Png)
+              $pngDataList += ,$pngMs.ToArray()
+              $pngMs.Dispose()
+              $bmp.Dispose()
+          }
+
+          # Directory entries (po headeru, před daty)
+          $dataOffset = 6 + ($sizes.Count * 16)  # header=6, entry=16 bytes each
+          for ($i = 0; $i -lt $sizes.Count; $i++) {
+              $sz = $sizes[$i]
+              $pngBytes = $pngDataList[$i]
+              $bw.Write([byte]$(if ($sz -ge 256) { 0 } else { $sz }))  # width
+              $bw.Write([byte]$(if ($sz -ge 256) { 0 } else { $sz }))  # height
+              $bw.Write([byte]0)       # color palette
+              $bw.Write([byte]0)       # reserved
+              $bw.Write([uint16]1)     # color planes
+              $bw.Write([uint16]32)    # bits per pixel
+              $bw.Write([uint32]$pngBytes.Length)  # data size
+              $bw.Write([uint32]$dataOffset)       # data offset
+              $dataOffset += $pngBytes.Length
+          }
+
+          # PNG data
+          foreach ($pngBytes in $pngDataList) {
+              $bw.Write($pngBytes)
+          }
+
+          # Uložit
+          $icoPath = "$PWD\Gastrox\gastrox.ico"
+          [System.IO.File]::WriteAllBytes($icoPath, $ms.ToArray())
+          Copy-Item $icoPath "$PWD\installer\gastrox.ico"
+          $bw.Dispose()
+          $ms.Dispose()
+          $src.Dispose()
+          Write-Host "ICO generated: $icoPath ($((Get-Item $icoPath).Length) bytes, $($sizes.Count) sizes)"
+
       - name: Set version in .csproj
         shell: pwsh
         run: |

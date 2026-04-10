@@ -10,6 +10,21 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.5.3] — 2026-04-10
+
+### Opraveno
+- **Ikona:** `.ico` se nyní generuje **v CI na Windows** (PowerShell + System.Drawing) místo Pillow na macOS. Pillow generoval PNG-compressed ICO, který Windows/Inno Setup špatně zobrazoval. Nový ICO je nativní Windows formát (multi-size: 16–256px).
+- **Instalátor:** ikona na ploše se nevytvářela — `{commondesktop}` mohl tiše selhat bez admin práv. Změněno na `{autodesktop}` (automaticky vybere správnou cestu).
+- **Instalátor:** `gastrox.ico` se znovu instaluje do `{app}\` jako samostatný soubor a zástupce ho odkazují přes `IconFilename` (záložní ikona pokud .exe embedding nefunguje).
+- **CI:** krok "Generate gastrox.ico from PNG" přidán před dotnet publish — přepíše Pillow-vygenerovaný `.ico` validním Windows ICO.
+
+### Soubory
+- `.github/workflows/release.yml`
+- `installer/gastrox.iss`
+- `Gastrox/Gastrox.csproj`
+
+---
+
 ## [0.5.2] — 2026-04-10
 
 ### Opraveno
@@ -258,7 +273,8 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
-[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.3...HEAD
+[0.5.3]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.8...v0.5.0
