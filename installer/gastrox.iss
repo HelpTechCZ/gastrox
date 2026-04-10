@@ -49,9 +49,9 @@ Source: "gastrox.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 ; Plocha aktuálního uživatele — VŽDY (i při tiché instalaci/aktualizaci)
-Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName},0"; Comment: "Evidence skladových zásob"
+Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\gastrox.ico"; Comment: "Evidence skladových zásob"
 ; Start menu
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName},0"; Comment: "Evidence skladových zásob"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\gastrox.ico"; Comment: "Evidence skladových zásob"
 Name: "{group}\Odinstalovat {#MyAppName}"; Filename: "{uninstallexe}"
 
 [Run]

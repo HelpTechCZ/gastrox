@@ -10,6 +10,13 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.7.4] — 2026-04-10
+
+### Opraveno
+- **Ikona zástupce:** opravena syntaxe `IconFilename` v Inno Setup — vráceno na `gastrox.ico` místo neplatné `,0` syntaxe u exe.
+
+---
+
 ## [0.7.3] — 2026-04-10
 
 ### Opraveno
