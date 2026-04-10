@@ -61,13 +61,6 @@ jobs:
 
       # ------------------------------------------------------------------
       # Code signing přes Azure Trusted Signing
-      # Stejné secrets jako v repu ServiDesk:
-      #   AZURE_TENANT_ID
-      #   AZURE_CLIENT_ID
-      #   AZURE_CLIENT_SECRET
-      #   AZURE_ENDPOINT
-      #   AZURE_SIGNING_ACCOUNT
-      #   AZURE_CERTIFICATE_PROFILE
       # ------------------------------------------------------------------
       - name: Sign Gastrox.exe with Azure Trusted Signing
         uses: azure/trusted-signing-action@v0.5.0
@@ -85,18 +78,51 @@ jobs:
           timestamp-digest: SHA256
 
       # ------------------------------------------------------------------
-      # Packaging
+      # Inno Setup installer
+      # ------------------------------------------------------------------
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress
+          echo "C:\Program Files (x86)\Inno Setup 6" >> $env:GITHUB_PATH
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.version.outputs.VERSION }}"
+          iscc /DMyAppVersion=$ver installer\gastrox.iss
+          Write-Host "Installer built: installer\Output\Gastrox-$ver-setup.exe"
+
+      - name: Sign installer with Azure Trusted Signing
+        uses: azure/trusted-signing-action@v0.5.0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: ${{ secrets.AZURE_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.AZURE_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ secrets.AZURE_CERTIFICATE_PROFILE }}
+          files: |
+            ${{ github.workspace }}/installer/Output/Gastrox-${{ steps.version.outputs.VERSION }}-setup.exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      # ------------------------------------------------------------------
+      # Packaging (ZIP + installer)
       # ------------------------------------------------------------------
       - name: Create ZIP
         shell: pwsh
         run: |
           Compress-Archive -Path publish\* -DestinationPath "Gastrox-${{ steps.version.outputs.VERSION }}-win-x64.zip"
 
-      - name: Upload artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Gastrox-${{ steps.version.outputs.VERSION }}
-          path: Gastrox-${{ steps.version.outputs.VERSION }}-win-x64.zip
+          path: |
+            Gastrox-${{ steps.version.outputs.VERSION }}-win-x64.zip
+            installer/Output/Gastrox-${{ steps.version.outputs.VERSION }}-setup.exe
           retention-days: 7
 
       - name: Create GitHub Release
@@ -108,4 +134,6 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
-          files: Gastrox-${{ steps.version.outputs.VERSION }}-win-x64.zip
+          files: |
+            Gastrox-${{ steps.version.outputs.VERSION }}-win-x64.zip
+            installer/Output/Gastrox-${{ steps.version.outputs.VERSION }}-setup.exe

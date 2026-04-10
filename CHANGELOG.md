@@ -10,6 +10,42 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.5.0] — 2026-04-10
+
+### Přidáno
+- **Instalátor:** Inno Setup installer (`Gastrox-{VERSION}-setup.exe`):
+  - Instalace do `C:\Gastrox` (root systémového disku)
+  - Zástupce na **plochu** (volitelný, výchozí zapnutý)
+  - Zástupce ve **Start menu**
+  - Český jazyk instalátoru
+  - Upgrade-safe: databáze `sklad.db` se při upgrade zachová
+  - Čištění starých DLL/runtime souborů při upgrade
+  - Volba „Spustit Gastrox" po dokončení instalace
+- **Ikona aplikace:** `gastrox.ico` (multi-size 16–256px, vygenerováno z `grafika/ikona.png`)
+  - Nastaveno jako `ApplicationIcon` v `.csproj` (ikona .exe souboru)
+  - Nastaveno jako `Icon` v `MainWindow.xaml` (ikona title baru okna)
+  - Ikona na ploše a ve Start menu
+- **CI/CD:** release workflow rozšířen o:
+  - Instalace Inno Setup přes Chocolatey
+  - Build instalátoru s předanou verzí
+  - Code signing instalátoru přes Azure Trusted Signing
+  - Upload instalátoru i ZIP do GitHub Release
+
+### Soubory (nové)
+- `Gastrox/gastrox.ico`
+- `installer/gastrox.iss` — Inno Setup script
+- `installer/gastrox.ico` — ikona pro instalátor
+- `installer/logo.png` — logo pro grafiku
+- `installer/wizard-sidebar.bmp` — sidebar wizard obrázek (164×314)
+- `installer/wizard-small.bmp` — malý wizard obrázek (55×55)
+
+### Soubory (upravené)
+- `Gastrox/Gastrox.csproj` — ApplicationIcon, version bump
+- `Gastrox/MainWindow.xaml` — Icon
+- `.github/workflows/release.yml` — Inno Setup + sign installer
+
+---
+
 ## [0.4.8] — 2026-04-09
 
 ### Změněno
@@ -198,7 +234,8 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
-[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.8...HEAD
+[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.8...v0.5.0
 [0.4.8]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.7...v0.4.8
 [0.4.7]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.6...v0.4.7
 [0.4.6]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.5...v0.4.6

@@ -8,8 +8,8 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>Gastrox</RootNamespace>
     <AssemblyName>Gastrox</AssemblyName>
-    <ApplicationIcon></ApplicationIcon>
-    <Version>0.4.8</Version>
+    <ApplicationIcon>gastrox.ico</ApplicationIcon>
+    <Version>0.5.0</Version>
     <Company>HelpTech.cz</Company>
     <Product>Gastrox</Product>
     <Description>Portable skladový software pro restauraci</Description>
