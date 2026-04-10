@@ -10,6 +10,16 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.5.1] — 2026-04-10
+
+### Opraveno
+- **Crash při startu:** `XamlParseException` způsobená chybějícím WPF resource pro `gastrox.ico`. `ApplicationIcon` v csproj vkládá ikonu jen do PE hlavičky .exe (ikona v Exploreru), ale `Window.Icon` v MainWindow.xaml potřebuje ikonu jako WPF `Resource`. Přidáno `<Resource Include="gastrox.ico" />` do csproj.
+
+### Soubory
+- `Gastrox/Gastrox.csproj`
+
+---
+
 ## [0.5.0] — 2026-04-10
 
 ### Přidáno
@@ -234,7 +244,8 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
-[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.8...v0.5.0
 [0.4.8]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.7...v0.4.8
 [0.4.7]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.6...v0.4.7

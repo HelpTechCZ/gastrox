@@ -9,7 +9,7 @@
     <RootNamespace>Gastrox</RootNamespace>
     <AssemblyName>Gastrox</AssemblyName>
     <ApplicationIcon>gastrox.ico</ApplicationIcon>
-    <Version>0.5.0</Version>
+    <Version>0.5.1</Version>
     <Company>HelpTech.cz</Company>
     <Product>Gastrox</Product>
     <Description>Portable skladový software pro restauraci</Description>
@@ -31,6 +31,12 @@
          aby aplikace zůstala 100% portable i jako jediný .exe soubor. -->
     <EmbeddedResource Include="..\Database\init.sql" Link="Database\init.sql"
                       LogicalName="Gastrox.Database.init.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Ikona jako WPF resource (pro Window.Icon binding v MainWindow.xaml).
+         ApplicationIcon ji vkládá jen do PE hlavičky .exe pro Explorer. -->
+    <Resource Include="gastrox.ico" />
   </ItemGroup>
 
 </Project>
