@@ -10,6 +10,20 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.5.2] — 2026-04-10
+
+### Opraveno
+- **Instalátor:** ikona na ploše se nevytvářela — byla podmíněná Tasks checkboxem (`checkedonce`). Nyní se vytváří **vždy** bez podmínky.
+- **Instalátor:** ikony zástupců (plocha, Start menu) nyní odkazují na `Gastrox.exe` (embedded ApplicationIcon) místo samostatného `gastrox.ico` souboru, který Windows nemusel správně zobrazit.
+- **Instalátor:** odstraněn nadbytečný `gastrox.ico` z instalace (ikona je embedded v .exe).
+- **Instalátor:** `UninstallDisplayIcon` odkazuje na `Gastrox.exe` místo samostatného .ico.
+
+### Soubory
+- `installer/gastrox.iss`
+- `Gastrox/Gastrox.csproj`
+
+---
+
 ## [0.5.1] — 2026-04-10
 
 ### Opraveno
@@ -244,7 +258,8 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
-[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.8...v0.5.0
 [0.4.8]: https://github.com/HelpTechCZ/gastrox/compare/v0.4.7...v0.4.8
