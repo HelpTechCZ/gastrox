@@ -51,13 +51,13 @@
                                         ElementStyle="{StaticResource CellText}"/>
                     <DataGridTextColumn Header="Stav" Binding="{Binding StavSJednotkou}" Width="*"
                                         ElementStyle="{StaticResource NumericCell}"/>
-                    <DataGridTextColumn Header="Nákup za j." Binding="{Binding NakupniCenaZaJednotkuBezDPH, StringFormat={}{0:N2} Kč}" Width="*"
+                    <DataGridTextColumn Header="Nákupní cena za j." Binding="{Binding NakupniCenaZaJednotkuBezDPH, StringFormat={}{0:N2} Kč}" Width="*"
                                         ElementStyle="{StaticResource NumericCell}"/>
-                    <DataGridTextColumn Header="Nákup celkem" Binding="{Binding HodnotaNakupBezDPH, StringFormat={}{0:N2} Kč}" Width="*"
+                    <DataGridTextColumn Header="Nákupní cena celkem" Binding="{Binding HodnotaNakupBezDPH, StringFormat={}{0:N2} Kč}" Width="*"
                                         ElementStyle="{StaticResource NumericCell}"/>
-                    <DataGridTextColumn Header="Prodej za j." Binding="{Binding ProdejniCenaZaJednotkuSDPH, StringFormat={}{0:N2} Kč}" Width="*"
+                    <DataGridTextColumn Header="Prodejní cena za j." Binding="{Binding ProdejniCenaZaJednotkuSDPH, StringFormat={}{0:N2} Kč}" Width="*"
                                         ElementStyle="{StaticResource NumericCell}"/>
-                    <DataGridTextColumn Header="Prodej celkem" Binding="{Binding HodnotaProdejSDPH, StringFormat={}{0:N2} Kč}" Width="*"
+                    <DataGridTextColumn Header="Prodejní cena celkem" Binding="{Binding HodnotaProdejSDPH, StringFormat={}{0:N2} Kč}" Width="*"
                                         ElementStyle="{StaticResource NumericCell}"/>
                 </DataGrid.Columns>
             </DataGrid>

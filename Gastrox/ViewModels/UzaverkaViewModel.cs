@@ -103,13 +103,13 @@ public class UzaverkaViewModel : ViewModelBase
                             header.Cell().Background(Colors.Grey.Lighten3).Padding(5)
                                 .AlignRight().Text("Stav").Style(style);
                             header.Cell().Background(Colors.Grey.Lighten3).Padding(5)
-                                .AlignRight().Text("Nákup/j.").Style(style);
+                                .AlignRight().Text("Nákupní cena/j.").Style(style);
                             header.Cell().Background(Colors.Grey.Lighten3).Padding(5)
-                                .AlignRight().Text("Nákup celk.").Style(style);
+                                .AlignRight().Text("Nákupní cena celk.").Style(style);
                             header.Cell().Background(Colors.Grey.Lighten3).Padding(5)
-                                .AlignRight().Text("Prodej/j.").Style(style);
+                                .AlignRight().Text("Prodejní cena/j.").Style(style);
                             header.Cell().Background(Colors.Grey.Lighten3).Padding(5)
-                                .AlignRight().Text("Prodej celk.").Style(style);
+                                .AlignRight().Text("Prodejní cena celk.").Style(style);
                         });
 
                         // Řádky

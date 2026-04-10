@@ -10,6 +10,13 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.7.1] — 2026-04-10
+
+### Upraveno
+- **Uzávěrka:** přejmenování sloupců na "Nákupní cena za j. / celkem" a "Prodejní cena za j. / celkem" v tabulce i v PDF.
+
+---
+
 ## [0.7.0] — 2026-04-08
 
 ### Přidáno
