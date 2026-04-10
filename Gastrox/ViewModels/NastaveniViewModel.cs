@@ -66,6 +66,30 @@ public class NastaveniViewModel : ViewModelBase
     private int _novaKategoriePoradi;
     public int NovaKategoriePoradi { get => _novaKategoriePoradi; set => SetProperty(ref _novaKategoriePoradi, value); }
 
+    // ---------- Licence ----------
+    private string _licenseKey = string.Empty;
+    public string LicenseKey { get => _licenseKey; set => SetProperty(ref _licenseKey, value); }
+
+    public string LicenceStav => LicenseService.IsLicensed
+        ? "Licence aktivní"
+        : "DEMO verze";
+
+    public string LicenceDetail
+    {
+        get
+        {
+            var c = LicenseService.Current;
+            if (c is null || !c.IsValid) return "Zadejte licenční klíč pro plnou verzi.";
+            var typ = c.Type == "yearly" ? "roční" : "měsíční";
+            var exp = DateTime.TryParse(c.Expires, out var d) ? d.ToString("d.M.yyyy") : "—";
+            return $"Zákazník: {c.Customer} | Typ: {typ} | Vyprší: {exp}";
+        }
+    }
+
+    public bool MaLicenciDetail => true;
+
+    public string LicenceBarva => LicenseService.IsLicensed ? "#E6F4EA" : "#FFF4E5";
+
     // ---------- Aktualizace ----------
     private bool _autoCheck = true;
     public bool AutoCheck { get => _autoCheck; set => SetProperty(ref _autoCheck, value); }
@@ -85,6 +109,8 @@ public class NastaveniViewModel : ViewModelBase
     public ICommand ZkontrolovatNynicommand { get; }
     public ICommand ExportZalohyCommand { get; }
     public ICommand ImportZalohyCommand { get; }
+    public ICommand AktivovatLicenciCommand { get; }
+    public ICommand OdebratLicenciCommand { get; }
 
     public NastaveniViewModel()
     {
@@ -103,6 +129,9 @@ public class NastaveniViewModel : ViewModelBase
         ZkontrolovatNynicommand = new RelayCommand(async _ => await ZkontrolovatNyniAsync());
         ExportZalohyCommand = new RelayCommand(_ => ExportZalohu());
         ImportZalohyCommand = new RelayCommand(_ => ImportZalohu());
+        AktivovatLicenciCommand = new RelayCommand(async _ => await AktivovatLicenciAsync(),
+            _ => !string.IsNullOrWhiteSpace(LicenseKey));
+        OdebratLicenciCommand = new RelayCommand(_ => OdebratLicenci());
     }
 
     public void Nacti()
@@ -117,6 +146,8 @@ public class NastaveniViewModel : ViewModelBase
         FirmaStat    = Get(n, NastaveniKey.FirmaStat) ?? "ČR";
         FirmaEmail   = Get(n, NastaveniKey.FirmaEmail);
         FirmaTelefon = Get(n, NastaveniKey.FirmaTel);
+
+        LicenseKey = Get(n, "license.key") ?? string.Empty;
 
         var auto = Get(n, NastaveniKey.UpdateAutoCheck);
         AutoCheck = auto is null || auto == "1";
@@ -228,6 +259,43 @@ public class NastaveniViewModel : ViewModelBase
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+    }
+
+    // ---------- Licence ----------
+
+    private async Task AktivovatLicenciAsync()
+    {
+        var info = await LicenseService.ValidateAsync(LicenseKey.Trim());
+        NotifyLicence();
+
+        if (info.IsValid)
+        {
+            MessageBox.Show(
+                $"Licence aktivována!\n\nZákazník: {info.Customer}\nVyprší: {info.Expires}",
+                "Licence", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        else
+        {
+            MessageBox.Show(
+                $"Aktivace se nezdařila:\n{info.Error}",
+                "Licence", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void OdebratLicenci()
+    {
+        LicenseService.ClearLicense();
+        LicenseKey = string.Empty;
+        NotifyLicence();
+        MessageBox.Show("Licence odebrána. Aplikace běží v DEMO režimu.",
+            "Licence", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    private void NotifyLicence()
+    {
+        OnPropertyChanged(nameof(LicenceStav));
+        OnPropertyChanged(nameof(LicenceDetail));
+        OnPropertyChanged(nameof(LicenceBarva));
     }
 
     // ---------- Zálohy ----------

@@ -23,6 +23,9 @@ public partial class App : Application
 
             // Inicializace databáze (vytvoří sklad.db vedle .exe, pokud neexistuje)
             DatabaseService.Initialize();
+
+            // Načíst uložený stav licence (offline cache)
+            LicenseService.LoadCachedState();
         }
         catch (Exception ex)
         {

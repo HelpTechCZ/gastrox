@@ -10,6 +10,31 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.9.0] — 2026-04-10
+
+### Přidáno
+- **Licenční systém:** aplikace komunikuje s licenčním serverem `gastrox.helptech.app`.
+  - Nový tab **Licence** v Nastavení — zadání klíče, aktivace, odebrání.
+  - `LicenseService` — validace proti API, offline cache v DB.
+  - Licence na měsíc nebo rok (podle typu předplatného).
+- **DEMO omezení (bez licence):**
+  - Max **20 skladových karet** — při pokusu o vytvoření 21. se zobrazí upozornění.
+  - V **PDF uzávěrce** se místo cen zobrazuje text **DEMO**.
+- **Licenční server (PHP):** `gastrox.helptech.app/`
+  - `api.php` — validace klíčů (POST), automatická aktivace při prvním použití.
+  - `admin.php` — správa licencí (CRUD), změna hesla, přehled stavů.
+  - SQLite databáze, chráněná `.htaccess`.
+
+### Soubory
+- `Gastrox/Services/LicenseService.cs` — nový
+- `Gastrox/ViewModels/NastaveniViewModel.cs` — licence tab
+- `Gastrox/ViewModels/SkladViewModel.cs` — demo limit 20 karet
+- `Gastrox/ViewModels/UzaverkaViewModel.cs` — demo ceny v PDF
+- `Gastrox/Views/NastaveniView.xaml` — licence tab UI
+- `Gastrox/App.xaml.cs` — načtení cache licence při startu
+
+---
+
 ## [0.8.2] — 2026-04-10
 
 ### Upraveno

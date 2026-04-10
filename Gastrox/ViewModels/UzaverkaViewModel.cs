@@ -59,6 +59,8 @@ public class UzaverkaViewModel : ViewModelBase
             var pdfPath = Path.Combine(dir, fileName);
 
             var karty = Karty.ToList();
+            var licensed = LicenseService.IsLicensed;
+            string cenaText(decimal v) => licensed ? $"{v:N2} Kč" : "DEMO";
 
             Document.Create(container =>
             {
@@ -125,13 +127,13 @@ public class UzaverkaViewModel : ViewModelBase
                             table.Cell().Background(bg).Padding(5)
                                 .AlignRight().Text(k.StavSJednotkou);
                             table.Cell().Background(bg).Padding(5)
-                                .AlignRight().Text($"{k.NakupniCenaZaJednotkuBezDPH:N2} Kč");
+                                .AlignRight().Text(cenaText(k.NakupniCenaZaJednotkuBezDPH));
                             table.Cell().Background(bg).Padding(5)
-                                .AlignRight().Text($"{k.HodnotaNakupBezDPH:N2} Kč");
+                                .AlignRight().Text(cenaText(k.HodnotaNakupBezDPH));
                             table.Cell().Background(bg).Padding(5)
-                                .AlignRight().Text($"{k.ProdejniCenaZaJednotkuSDPH:N2} Kč");
+                                .AlignRight().Text(cenaText(k.ProdejniCenaZaJednotkuSDPH));
                             table.Cell().Background(bg).Padding(5)
-                                .AlignRight().Text($"{k.HodnotaProdejSDPH:N2} Kč");
+                                .AlignRight().Text(cenaText(k.HodnotaProdejSDPH));
                         }
                     });
 
@@ -144,14 +146,14 @@ public class UzaverkaViewModel : ViewModelBase
                             row.RelativeItem().AlignRight().Text(t =>
                             {
                                 t.Span("Nákup celkem: ").FontSize(10);
-                                t.Span($"{karty.Sum(k => k.HodnotaNakupBezDPH):N2} Kč")
+                                t.Span(licensed ? $"{karty.Sum(k => k.HodnotaNakupBezDPH):N2} Kč" : "DEMO")
                                     .FontSize(10).Bold();
                             });
                         });
                         col.Item().PaddingTop(4).AlignRight().Text(t =>
                         {
                             t.Span("Prodej celkem: ").FontSize(10);
-                            t.Span($"{karty.Sum(k => k.HodnotaProdejSDPH):N2} Kč")
+                            t.Span(licensed ? $"{karty.Sum(k => k.HodnotaProdejSDPH):N2} Kč" : "DEMO")
                                 .FontSize(10).Bold();
                         });
                         col.Item().PaddingTop(12).AlignCenter()

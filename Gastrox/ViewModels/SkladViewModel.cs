@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using Gastrox.Commands;
@@ -273,6 +274,15 @@ public class SkladViewModel : ViewModelBase
 
     private void Uloz()
     {
+        // Demo limit: max 20 karet bez licence (pouze při zakládání nové)
+        if (_editId == 0 && !LicenseService.IsLicensed && Karty.Count >= LicenseService.DemoMaxKaret)
+        {
+            MessageBox.Show(
+                $"DEMO verze je omezena na {LicenseService.DemoMaxKaret} skladových karet.\n\nPro neomezenou verzi zadejte licenční klíč v Nastavení → Licence.",
+                "DEMO omezení", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
         var k = new SkladovaKarta
         {
             Id = _editId,

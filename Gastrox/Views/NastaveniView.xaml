@@ -186,6 +186,44 @@
                 </Border>
             </TabItem>
 
+            <!-- TAB LICENCE -->
+            <TabItem Header="Licence">
+                <Border Background="White" CornerRadius="14" Padding="24" Margin="0,8,0,0">
+                    <StackPanel MaxWidth="600" HorizontalAlignment="Left">
+                        <TextBlock Text="Licence" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+                        <Border Background="{Binding LicenceBarva}" CornerRadius="8" Padding="14" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="{Binding LicenceStav}" FontWeight="SemiBold" FontSize="14"/>
+                                <TextBlock Text="{Binding LicenceDetail}" Foreground="#666" Margin="0,4,0,0"
+                                           Visibility="{Binding MaLicenciDetail, Converter={StaticResource BoolToVisConv}}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="Licenční klíč"/>
+                        <TextBox Text="{Binding LicenseKey, UpdateSourceTrigger=PropertyChanged}"
+                                 Margin="0,4,0,16" Padding="8,6"
+                                 FontFamily="Consolas" FontSize="14"
+                                 CharacterCasing="Upper"/>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Aktivovat licenci"
+                                    Command="{Binding AktivovatLicenciCommand}"
+                                    Padding="14,8" Background="#107C10" Foreground="White"
+                                    BorderThickness="0" FontWeight="SemiBold" Cursor="Hand"/>
+                            <Button Content="Odebrat licenci"
+                                    Command="{Binding OdebratLicenciCommand}"
+                                    Margin="8,0,0,0" Padding="14,8" Cursor="Hand"/>
+                        </StackPanel>
+
+                        <Border Margin="0,20,0,0" Background="#F8F8F8" CornerRadius="6" Padding="12">
+                            <TextBlock TextWrapping="Wrap" Foreground="#888"
+                                       Text="Bez licence je aplikace omezena na 20 skladových karet a v PDF uzávěrce se nezobrazují ceny. Licenční klíč získáte od HelpTech.cz."/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </TabItem>
+
             <!-- TAB ZÁLOHY -->
             <TabItem Header="Zálohy">
                 <Border Background="White" CornerRadius="14" Padding="24" Margin="0,8,0,0">
