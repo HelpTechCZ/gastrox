@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Gastrox.Commands;
 using Gastrox.Models;
 using Gastrox.Services;
+using Microsoft.Win32;
 
 namespace Gastrox.ViewModels;
 
@@ -80,6 +83,8 @@ public class NastaveniViewModel : ViewModelBase
     public ICommand DeaktivovatKategoriiCommand { get; }
     public ICommand UlozitAktualizaceCommand { get; }
     public ICommand ZkontrolovatNynicommand { get; }
+    public ICommand ExportZalohyCommand { get; }
+    public ICommand ImportZalohyCommand { get; }
 
     public NastaveniViewModel()
     {
@@ -96,6 +101,8 @@ public class NastaveniViewModel : ViewModelBase
             _ => VybranaKategorie is not null);
         UlozitAktualizaceCommand = new RelayCommand(_ => UlozAutoCheck());
         ZkontrolovatNynicommand = new RelayCommand(async _ => await ZkontrolovatNyniAsync());
+        ExportZalohyCommand = new RelayCommand(_ => ExportZalohu());
+        ImportZalohyCommand = new RelayCommand(_ => ImportZalohu());
     }
 
     public void Nacti()
@@ -220,6 +227,65 @@ public class NastaveniViewModel : ViewModelBase
                 MessageBox.Show("Aktualizace selhala:\n" + ex.Message, "Chyba",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+    }
+
+    // ---------- Zálohy ----------
+
+    private void ExportZalohu()
+    {
+        var dlg = new SaveFileDialog
+        {
+            Title = "Exportovat zálohu databáze",
+            FileName = $"gastrox-zaloha-{DateTime.Now:yyyy-MM-dd}.db",
+            Filter = "SQLite databáze (*.db)|*.db|Všechny soubory (*.*)|*.*",
+            DefaultExt = ".db"
+        };
+        if (dlg.ShowDialog() != true) return;
+
+        try
+        {
+            File.Copy(DatabaseService.DbPath, dlg.FileName, overwrite: true);
+            MessageBox.Show($"Záloha uložena:\n{dlg.FileName}",
+                "Export hotov", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Chyba při exportu:\n" + ex.Message,
+                "Chyba", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void ImportZalohu()
+    {
+        var dlg = new OpenFileDialog
+        {
+            Title = "Importovat zálohu databáze",
+            Filter = "SQLite databáze (*.db)|*.db|Všechny soubory (*.*)|*.*",
+            DefaultExt = ".db"
+        };
+        if (dlg.ShowDialog() != true) return;
+
+        var res = MessageBox.Show(
+            "Opravdu chcete nahradit aktuální databázi zvolenou zálohou?\n\n" +
+            "Aktuální data budou přepsána a aplikace se restartuje.",
+            "Import zálohy", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        if (res != MessageBoxResult.Yes) return;
+
+        try
+        {
+            File.Copy(dlg.FileName, DatabaseService.DbPath, overwrite: true);
+
+            // Restart aplikace
+            var exe = Process.GetCurrentProcess().MainModule?.FileName;
+            if (exe is not null)
+                Process.Start(exe);
+            Application.Current.Shutdown();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Chyba při importu:\n" + ex.Message,
+                "Chyba", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

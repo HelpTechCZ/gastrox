@@ -186,6 +186,39 @@
                 </Border>
             </TabItem>
 
+            <!-- TAB ZÁLOHY -->
+            <TabItem Header="Zálohy">
+                <Border Background="White" CornerRadius="14" Padding="24" Margin="0,8,0,0">
+                    <StackPanel MaxWidth="600" HorizontalAlignment="Left">
+                        <TextBlock Text="Záloha databáze" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                        <TextBlock Text="Gastrox automaticky zálohuje databázi při každém ukončení (posledních 10 záloh). Zde můžete ručně exportovat nebo importovat zálohu."
+                                   Foreground="#666" Margin="0,0,0,20" TextWrapping="Wrap"/>
+
+                        <TextBlock Text="Export" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                        <TextBlock Text="Uloží aktuální databázi jako soubor na zvolené místo."
+                                   Foreground="#666" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                        <Button Content="📤 Exportovat zálohu"
+                                Command="{Binding ExportZalohyCommand}"
+                                HorizontalAlignment="Left"
+                                Padding="14,8" Background="#0078D4" Foreground="White"
+                                BorderThickness="0" FontWeight="SemiBold" Cursor="Hand"/>
+
+                        <Border Margin="0,20,0,20" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0"/>
+
+                        <TextBlock Text="Import" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                        <TextBlock Text="Nahradí aktuální databázi zvolenou zálohou. Aplikace se poté restartuje."
+                                   Foreground="#666" Margin="0,0,0,4" TextWrapping="Wrap"/>
+                        <TextBlock Text="⚠ Tato operace je nevratná – aktuální data budou přepsána!"
+                                   Foreground="#D13438" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                        <Button Content="📥 Importovat zálohu"
+                                Command="{Binding ImportZalohyCommand}"
+                                HorizontalAlignment="Left"
+                                Padding="14,8" Background="#D13438" Foreground="White"
+                                BorderThickness="0" FontWeight="SemiBold" Cursor="Hand"/>
+                    </StackPanel>
+                </Border>
+            </TabItem>
+
             <!-- TAB AKTUALIZACE -->
             <TabItem Header="Aktualizace">
                 <Border Background="White" CornerRadius="14" Padding="24" Margin="0,8,0,0">

@@ -10,6 +10,24 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.8.0] — 2026-04-10
+
+### Přidáno
+- **Single instance:** zamezení duplicitního spuštění aplikace pomocí Mutex. Při pokusu o druhé spuštění se zobrazí upozornění.
+- **Automatické zálohy:** při každém ukončení se databáze `sklad.db` automaticky zkopíruje do složky `Zálohy/` s timestampem. Uchovává se posledních 10 záloh, starší se automaticky mažou.
+- **Import/Export záloh:** nový tab "Zálohy" v Nastavení:
+  - **Export:** uloží aktuální databázi na zvolené místo (SaveFileDialog).
+  - **Import:** nahradí aktuální databázi zvolenou zálohou a restartuje aplikaci.
+
+### Soubory
+- `Gastrox/Program.cs` — Mutex pro single instance
+- `Gastrox/App.xaml.cs` — auto-záloha v OnExit
+- `Gastrox/Views/NastaveniView.xaml` — nový tab Zálohy
+- `Gastrox/ViewModels/NastaveniViewModel.cs` — Export/Import příkazy
+- `Gastrox/Gastrox.csproj` — verze 0.8.0
+
+---
+
 ## [0.7.4] — 2026-04-10
 
 ### Opraveno

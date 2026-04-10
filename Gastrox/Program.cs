@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Windows;
 
 namespace Gastrox;
@@ -11,10 +12,24 @@ namespace Gastrox;
 /// </summary>
 public static class Program
 {
+    private static Mutex? _mutex;
+
     [STAThread]
     public static int Main(string[] args)
     {
         Log("=== Gastrox start ===");
+
+        // Zamezení duplicitnímu spuštění
+        const string mutexName = "Global\\Gastrox_B7A3F2E1_SingleInstance";
+        _mutex = new Mutex(true, mutexName, out bool createdNew);
+        if (!createdNew)
+        {
+            Log("Již běží jiná instance – ukončuji.");
+            MessageBox.Show(
+                "Gastrox už běží.\n\nNelze spustit dvě instance současně.",
+                "Gastrox", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return 0;
+        }
 
         try
         {
@@ -40,6 +55,11 @@ public static class Program
             }
             catch { /* MessageBox může být nedostupný */ }
             return 1;
+        }
+        finally
+        {
+            _mutex?.ReleaseMutex();
+            _mutex?.Dispose();
         }
     }
 
