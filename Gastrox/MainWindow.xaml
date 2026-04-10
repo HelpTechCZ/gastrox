@@ -54,11 +54,12 @@
                 </StackPanel>
 
                 <StackPanel>
-                    <Button Content="🏠 Dashboard"  Style="{StaticResource MenuButton}" Click="Dashboard_Click"/>
-                    <Button Content="📦 Sklad"      Style="{StaticResource MenuButton}" Click="Sklad_Click"/>
-                    <Button Content="📥 Naskladnit" Style="{StaticResource MenuButton}" Click="Naskladnit_Click"/>
-                    <Button Content="📤 Vyskladnit" Style="{StaticResource MenuButton}" Click="Vyskladnit_Click"/>
-                    <Button Content="📋 Inventura"  Style="{StaticResource MenuButton}" Click="Inventura_Click"/>
+                    <Button Content="🏠 Nástěnka"   Style="{StaticResource MenuButton}" Click="Dashboard_Click"/>
+                    <Button Content="📦 Sklad"       Style="{StaticResource MenuButton}" Click="Sklad_Click"/>
+                    <Button Content="📥 Naskladnit"  Style="{StaticResource MenuButton}" Click="Naskladnit_Click"/>
+                    <Button Content="📤 Vyskladnit"  Style="{StaticResource MenuButton}" Click="Vyskladnit_Click"/>
+                    <Button Content="📋 Inventura"   Style="{StaticResource MenuButton}" Click="Inventura_Click"/>
+                    <Button Content="📊 Pohyby"      Style="{StaticResource MenuButton}" Click="Pohyby_Click"/>
                 </StackPanel>
             </DockPanel>
         </Border>

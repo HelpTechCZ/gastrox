@@ -10,6 +10,31 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.6.0] — 2026-04-10
+
+### Přidáno
+- **Pohyby:** nová sekce v bočním menu (📊 Pohyby) — přehled příjemek a výdejek:
+  - **Tab Příjemky:** DataGrid s hlavičkami příjemek (č. dokladu, datum, dodavatel, č. faktury, celkem bez/s DPH). Po kliknutí na příjemku se zobrazí detail řádků (zboží, balení, koeficient, EJ, cena, DPH, celkem).
+  - **Tab Výdejky:** DataGrid s hlavičkami výdejek (č. dokladu, datum, středisko, typ výdeje, poznámka). Po kliknutí na výdejku se zobrazí detail řádků (zboží, množství EJ, balení, nákup. cena).
+- **DatabaseService:** 4 nové metody — `LoadPrijemky()`, `LoadPrijemkaRadky()`, `LoadVydejky()`, `LoadVydejkaRadky()`.
+- **Model Vydejka:** computed properties `StrediskoLabel` a `TypVydejeLabel` pro česky formátované názvy v DataGridu.
+
+### Změněno
+- **Menu:** „Dashboard" přejmenován na **„Nástěnka"**.
+
+### Soubory (nové)
+- `Gastrox/Views/PohybyView.xaml` + `.cs`
+- `Gastrox/ViewModels/PohybyViewModel.cs`
+
+### Soubory (upravené)
+- `Gastrox/MainWindow.xaml` — nové menu item + přejmenování
+- `Gastrox/MainWindow.xaml.cs` — `Pohyby_Click` handler
+- `Gastrox/Services/DatabaseService.cs` — 4 nové metody
+- `Gastrox/Models/Vydejka.cs` — formátované properties
+- `Gastrox/Gastrox.csproj` — version bump
+
+---
+
 ## [0.5.3] — 2026-04-10
 
 ### Opraveno
@@ -273,7 +298,8 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
-[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.3...HEAD
+[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.3...v0.6.0
 [0.5.3]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.0...v0.5.1

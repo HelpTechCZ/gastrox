@@ -648,6 +648,147 @@ public static class DatabaseService
     }
 
     // ----------------------------------------------------------------
+    // Příjemky – seznam hlaviček
+    // ----------------------------------------------------------------
+    public static List<Prijemka> LoadPrijemky(int limit = 500)
+    {
+        var list = new List<Prijemka>();
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT Id, Cislo_Dokladu, Datum_Prijeti, Dodavatel, Cislo_Faktury,
+                   Poznamka, Celkem_Bez_DPH, Celkem_S_DPH
+              FROM Prijemka
+             ORDER BY Datum_Prijeti DESC, Id DESC
+             LIMIT $lim";
+        cmd.Parameters.AddWithValue("$lim", limit);
+
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            list.Add(new Prijemka
+            {
+                Id            = reader.GetInt32(0),
+                CisloDokladu  = reader.GetString(1),
+                DatumPrijeti  = DateTime.Parse(reader.GetString(2)),
+                Dodavatel     = reader.IsDBNull(3) ? null : reader.GetString(3),
+                CisloFaktury  = reader.IsDBNull(4) ? null : reader.GetString(4),
+                Poznamka      = reader.IsDBNull(5) ? null : reader.GetString(5),
+                CelkemBezDPH  = (decimal)reader.GetDouble(6),
+                CelkemSDPH    = (decimal)reader.GetDouble(7)
+            });
+        }
+        return list;
+    }
+
+    public static List<PrijemkaRadek> LoadPrijemkaRadky(int prijemkaId)
+    {
+        var list = new List<PrijemkaRadek>();
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT pr.Id, pr.SkladovaKarta_Id, sk.Nazev, pr.Pocet_Baleni,
+                   pr.Koeficient_Prepoctu, pr.Mnozstvi_Evidencni,
+                   pr.Nakupni_Cena_Bez_DPH, pr.Sazba_DPH, pr.Celkem_Bez_DPH, pr.Celkem_S_DPH,
+                   sk.Evidencni_Jednotka, sk.Typ_Baleni
+              FROM PrijemkaRadek pr
+              JOIN SkladovaKarta sk ON sk.Id = pr.SkladovaKarta_Id
+             WHERE pr.Prijemka_Id = $pid
+             ORDER BY pr.Id";
+        cmd.Parameters.AddWithValue("$pid", prijemkaId);
+
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            list.Add(new PrijemkaRadek
+            {
+                Id                 = reader.GetInt32(0),
+                SkladovaKartaId    = reader.GetInt32(1),
+                NazevZbozi         = reader.GetString(2),
+                PocetBaleni        = (decimal)reader.GetDouble(3),
+                KoeficientPrepoctu = (decimal)reader.GetDouble(4),
+                NakupniCenaBezDPH  = (decimal)reader.GetDouble(6),
+                SazbaDPH           = (decimal)reader.GetDouble(7),
+                EvidencniJednotka  = reader.GetString(10),
+                TypBaleni          = reader.GetString(11)
+            });
+        }
+        return list;
+    }
+
+    // ----------------------------------------------------------------
+    // Výdejky – seznam hlaviček
+    // ----------------------------------------------------------------
+    public static List<Vydejka> LoadVydejky(int limit = 500)
+    {
+        var list = new List<Vydejka>();
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT Id, Cislo_Dokladu, Datum_Vydeje, Stredisko, Typ_Vydeje, Poznamka
+              FROM Vydejka
+             ORDER BY Datum_Vydeje DESC, Id DESC
+             LIMIT $lim";
+        cmd.Parameters.AddWithValue("$lim", limit);
+
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            var stredStr = reader.GetString(3);
+            var typStr   = reader.GetString(4);
+            Enum.TryParse<Stredisko>(stredStr, out var stred);
+            Enum.TryParse<TypVydeje>(typStr, out var typ);
+
+            list.Add(new Vydejka
+            {
+                Id           = reader.GetInt32(0),
+                CisloDokladu = reader.GetString(1),
+                DatumVydeje  = DateTime.Parse(reader.GetString(2)),
+                Stredisko    = stred,
+                TypVydeje    = typ,
+                Poznamka     = reader.IsDBNull(5) ? null : reader.GetString(5)
+            });
+        }
+        return list;
+    }
+
+    public static List<VydejkaRadek> LoadVydejkaRadky(int vydejkaId)
+    {
+        var list = new List<VydejkaRadek>();
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT vr.Id, vr.SkladovaKarta_Id, sk.Nazev,
+                   vr.Mnozstvi_Evidencni, vr.Pocet_Baleni_Info,
+                   vr.Nakupni_Cena_Bez_DPH, sk.Evidencni_Jednotka
+              FROM VydejkaRadek vr
+              JOIN SkladovaKarta sk ON sk.Id = vr.SkladovaKarta_Id
+             WHERE vr.Vydejka_Id = $vid
+             ORDER BY vr.Id";
+        cmd.Parameters.AddWithValue("$vid", vydejkaId);
+
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            list.Add(new VydejkaRadek
+            {
+                Id                = reader.GetInt32(0),
+                SkladovaKartaId   = reader.GetInt32(1),
+                NazevZbozi        = reader.GetString(2),
+                MnozstviEvidencni = (decimal)reader.GetDouble(3),
+                PocetBaleniInfo   = reader.IsDBNull(4) ? null : (decimal)reader.GetDouble(4),
+                NakupniCenaBezDPH = reader.IsDBNull(5) ? null : (decimal)reader.GetDouble(5),
+                EvidencniJednotka = reader.GetString(6)
+            });
+        }
+        return list;
+    }
+
+    // ----------------------------------------------------------------
     // Statistika – počet pohybů za posledních 7 dní (pro dashboard)
     // ----------------------------------------------------------------
     public static int SpocitatPohybyZaTyden()

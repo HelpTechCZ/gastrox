@@ -28,6 +28,25 @@ public class Vydejka
     public string? Poznamka { get; set; }
 
     public List<VydejkaRadek> Radky { get; set; } = new();
+
+    // ---- formátované vlastnosti pro UI ----
+
+    public string StrediskoLabel => Stredisko switch
+    {
+        Stredisko.Bar     => "Bar",
+        Stredisko.Kuchyne => "Kuchyně",
+        _                 => Stredisko.ToString()
+    };
+
+    public string TypVydejeLabel => TypVydeje switch
+    {
+        TypVydeje.Prodej         => "Prodej",
+        TypVydeje.VlastniSpotreba => "Vlastní spotřeba",
+        TypVydeje.OdpisZlom      => "Odpis – zlom",
+        TypVydeje.OdpisSanitace  => "Odpis – sanitace",
+        TypVydeje.OdpisExpirace  => "Odpis – expirace",
+        _                        => TypVydeje.ToString()
+    };
 }
 
 public class VydejkaRadek

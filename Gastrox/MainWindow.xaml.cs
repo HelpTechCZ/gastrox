@@ -88,5 +88,6 @@ public partial class MainWindow : Window
     private void Naskladnit_Click(object sender, RoutedEventArgs e) => ShowNaskladnit();
     private void Vyskladnit_Click(object sender, RoutedEventArgs e) => ShowVyskladnit();
     private void Inventura_Click(object sender, RoutedEventArgs e)  => ShowInventura();
+    private void Pohyby_Click(object sender, RoutedEventArgs e)     => MainContent.Content = new PohybyView();
     private void Nastaveni_Click(object sender, RoutedEventArgs e)  => MainContent.Content = new NastaveniView();
 }
