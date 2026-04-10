@@ -611,6 +611,45 @@ public static class DatabaseService
     }
 
     // ----------------------------------------------------------------
+    // Uzávěrka skladu (snapshot aktuálních stavů)
+    // ----------------------------------------------------------------
+    public static void SaveUzaverka(DateTime datum, List<SkladovaKarta> karty)
+    {
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var tx = conn.BeginTransaction();
+
+        using var cmdH = conn.CreateCommand();
+        cmdH.Transaction = tx;
+        cmdH.CommandText = @"
+            INSERT INTO Uzaverka (Typ, Datum_Od, Datum_Do, Vytvoreno)
+            VALUES ('Manualni', $datum, $datum, $now);
+            SELECT last_insert_rowid();";
+        cmdH.Parameters.AddWithValue("$datum", datum.ToString("o"));
+        cmdH.Parameters.AddWithValue("$now",   DateTime.Now.ToString("o"));
+        var uzId = cmdH.ExecuteScalar()!;
+
+        using var cmdR = conn.CreateCommand();
+        cmdR.Transaction = tx;
+        cmdR.CommandText = @"
+            INSERT INTO UzaverkaRadek (Uzaverka_Id, SkladovaKarta_Id, Stav_Evidencni)
+            VALUES ($uid, $kid, $stav)";
+        cmdR.Parameters.AddWithValue("$uid",  0);
+        cmdR.Parameters.AddWithValue("$kid",  0);
+        cmdR.Parameters.AddWithValue("$stav", 0.0);
+
+        foreach (var k in karty)
+        {
+            cmdR.Parameters["$uid"].Value  = Convert.ToInt64(uzId);
+            cmdR.Parameters["$kid"].Value  = k.Id;
+            cmdR.Parameters["$stav"].Value = (double)k.AktualniStavEvidencni;
+            cmdR.ExecuteNonQuery();
+        }
+
+        tx.Commit();
+    }
+
+    // ----------------------------------------------------------------
     // Pohyby na kartě (deník / historie)
     // ----------------------------------------------------------------
     public static List<PohybSkladu> LoadPohybyKarty(int kartaId, int limit = 200)

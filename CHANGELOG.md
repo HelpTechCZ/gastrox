@@ -10,6 +10,28 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.7.0] — 2026-04-08
+
+### Přidáno
+- **Uzávěrka skladu:** nahrazuje Inventuru. Nová sekce v menu (📋 Uzávěrka) a dlaždice na nástěnce.
+  - Zobrazí přehled všech aktivních skladových karet s aktuálními stavy, nákupními a prodejními cenami.
+  - Tlačítkem **Generovat PDF** vytvoří PDF dokument (QuestPDF) se snapshotem skladu — název, kategorie, stav s jednotkou, nákup za jednotku, nákup celkem, prodej za jednotku, prodej celkem.
+  - PDF se uloží do složky `Uzavěrky/` vedle aplikace a automaticky se otevře v systémovém prohlížeči.
+  - Uzávěrka se zároveň zapíše do DB (tabulky `Uzaverka` + `UzaverkaRadek`) pro pozdější dohledání.
+
+### Odstraněno
+- **Inventura (třístupňový průvodce):** odstraněna z menu i nástěnky, nahrazena uzávěrkou.
+
+### Soubory
+- `Gastrox/ViewModels/UzaverkaViewModel.cs` — nový
+- `Gastrox/Views/UzaverkaView.xaml` + `.cs` — nový
+- `Gastrox/Services/DatabaseService.cs` — nová metoda `SaveUzaverka()`
+- `Gastrox/MainWindow.xaml` + `.cs` — navigace Inventura → Uzávěrka
+- `Gastrox/Views/DashboardView.xaml` + `.cs` — dlaždice Inventura → Uzávěrka
+- `Gastrox/Gastrox.csproj` — verze 0.7.0
+
+---
+
 ## [0.6.1] — 2026-04-10
 
 ### Opraveno

@@ -49,7 +49,7 @@ public partial class MainWindow : Window
         var dash = new DashboardView();
         dash.NaskladnitClicked += (_, __) => ShowNaskladnit();
         dash.VyskladnitClicked += (_, __) => ShowVyskladnit();
-        dash.InventuraClicked  += (_, __) => ShowInventura();
+        dash.UzaverkaClicked   += (_, __) => ShowUzaverka();
         dash.NovaKartaClicked  += (_, __) => ShowSkladNovaKarta();
         MainContent.Content = dash;
     }
@@ -76,9 +76,9 @@ public partial class MainWindow : Window
         MainContent.Content = v;
     }
 
-    private void ShowInventura()
+    private void ShowUzaverka()
     {
-        var v = new InventuraWizardView();
+        var v = new UzaverkaView();
         v.Hotovo += ShowDashboard;
         MainContent.Content = v;
     }
@@ -87,7 +87,7 @@ public partial class MainWindow : Window
     private void Sklad_Click(object sender, RoutedEventArgs e)      => MainContent.Content = new SkladView();
     private void Naskladnit_Click(object sender, RoutedEventArgs e) => ShowNaskladnit();
     private void Vyskladnit_Click(object sender, RoutedEventArgs e) => ShowVyskladnit();
-    private void Inventura_Click(object sender, RoutedEventArgs e)  => ShowInventura();
+    private void Uzaverka_Click(object sender, RoutedEventArgs e)   => ShowUzaverka();
     private void Pohyby_Click(object sender, RoutedEventArgs e)     => MainContent.Content = new PohybyView();
     private void Nastaveni_Click(object sender, RoutedEventArgs e)  => MainContent.Content = new NastaveniView();
 }
