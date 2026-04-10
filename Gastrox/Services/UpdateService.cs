@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -20,7 +19,7 @@ public record UpdateInfo(
 
 /// <summary>
 /// Služba pro kontrolu aktualizací proti GitHub Releases API.
-/// Endpoint: https://api.github.com/repos/HelpTechCZ/gastrox/releases/latest
+/// Stahuje setup.exe instalátor (Inno Setup) a spouští ho s UAC elevací.
 /// </summary>
 public static class UpdateService
 {
@@ -60,17 +59,32 @@ public static class UpdateService
             if (!IsNewer(cleanVer, CurrentVersion))
                 return null;
 
-            // Najdi první ZIP asset
+            // Preferuj setup.exe, fallback na ZIP
             string? downloadUrl = null;
             if (root.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
             {
+                // Nejdřív hledej setup.exe
                 foreach (var asset in assets.EnumerateArray())
                 {
                     var name = asset.GetProperty("name").GetString() ?? "";
-                    if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    if (name.EndsWith("-setup.exe", StringComparison.OrdinalIgnoreCase))
                     {
                         downloadUrl = asset.GetProperty("browser_download_url").GetString();
                         break;
+                    }
+                }
+
+                // Fallback na ZIP (pro portable instalace bez Inno Setup)
+                if (string.IsNullOrEmpty(downloadUrl))
+                {
+                    foreach (var asset in assets.EnumerateArray())
+                    {
+                        var name = asset.GetProperty("name").GetString() ?? "";
+                        if (name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                        {
+                            downloadUrl = asset.GetProperty("browser_download_url").GetString();
+                            break;
+                        }
                     }
                 }
             }
@@ -82,15 +96,13 @@ public static class UpdateService
         }
         catch
         {
-            // Kontrola aktualizací nesmí shodit aplikaci – offline, rate limit atd.
             return null;
         }
     }
 
     /// <summary>
-    /// Stáhne ZIP do temp, rozbalí vedle .exe do podsložky "update",
-    /// a vygeneruje updater .bat, který po ukončení hlavní aplikace
-    /// překopíruje nové soubory přes staré a spustí novou verzi.
+    /// Stáhne instalátor (setup.exe) nebo ZIP do temp složky.
+    /// Vrací cestu ke staženému souboru.
     /// </summary>
     public static async Task<string> DownloadAndPrepareAsync(UpdateInfo info)
     {
@@ -98,23 +110,49 @@ public static class UpdateService
         http.DefaultRequestHeaders.UserAgent.Add(
             new ProductInfoHeaderValue("Gastrox", CurrentVersion));
 
-        var tempZip = Path.Combine(Path.GetTempPath(), $"gastrox-update-{info.Version}.zip");
-        var tempDir = Path.Combine(Path.GetTempPath(), $"gastrox-update-{info.Version}");
-        if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        var fileName = info.DownloadUrl.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)
+            ? $"Gastrox-{info.Version}-setup.exe"
+            : $"Gastrox-{info.Version}.zip";
+
+        var tempPath = Path.Combine(Path.GetTempPath(), fileName);
 
         var bytes = await http.GetByteArrayAsync(info.DownloadUrl);
-        File.WriteAllBytes(tempZip, bytes);
-        ZipFile.ExtractToDirectory(tempZip, tempDir);
+        File.WriteAllBytes(tempPath, bytes);
 
-        return tempDir;
+        return tempPath;
     }
 
     /// <summary>
-    /// Vygeneruje .bat, který počká na ukončení Gastrox.exe, překopíruje
-    /// soubory z temp složky do instalačního adresáře a aplikaci znovu spustí.
+    /// Spustí stažený instalátor (s UAC elevací) nebo legacy .bat updater pro ZIP.
+    /// Aplikace se ukončí a instalátor přepíše staré soubory.
     /// </summary>
-    public static void LaunchUpdaterAndExit(string extractedUpdateDir)
+    public static void LaunchUpdaterAndExit(string downloadedFile)
     {
+        if (downloadedFile.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+        {
+            // Inno Setup instalátor — /SILENT = tichá instalace bez dialogů,
+            // /CLOSEAPPLICATIONS = zavře běžící Gastrox.exe automaticky
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = downloadedFile,
+                Arguments = "/SILENT /CLOSEAPPLICATIONS",
+                UseShellExecute = true,
+                Verb = "runas"    // UAC elevation
+            });
+        }
+        else
+        {
+            // Legacy fallback pro ZIP (portable instalace)
+            LaunchBatUpdater(downloadedFile);
+        }
+    }
+
+    private static void LaunchBatUpdater(string zipPath)
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), $"gastrox-update-{Guid.NewGuid():N}");
+        if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+        System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, tempDir);
+
         var installDir = AppContext.BaseDirectory.TrimEnd('\\', '/');
         var exeName = Path.GetFileName(Process.GetCurrentProcess().MainModule?.FileName ?? "Gastrox.exe");
         var batPath = Path.Combine(Path.GetTempPath(), $"gastrox-updater-{Guid.NewGuid():N}.bat");
@@ -128,7 +166,7 @@ if not errorlevel 1 (
     timeout /t 1 /nobreak >nul
     goto wait
 )
-xcopy /E /Y /I ""{extractedUpdateDir}\*"" ""{installDir}\""
+xcopy /E /Y /I ""{tempDir}\*"" ""{installDir}\""
 start """" ""{installDir}\{exeName}""
 del ""%~f0""
 ";
@@ -152,7 +190,6 @@ del ""%~f0""
     private static string NormalizeVersion(string s)
     {
         var parts = s.Split('.').Select(p => p.Trim()).ToArray();
-        // Version vyžaduje min. 2 části, doplnit patch/build na 0
         if (parts.Length == 1) return $"{parts[0]}.0.0";
         if (parts.Length == 2) return $"{parts[0]}.{parts[1]}.0";
         return string.Join('.', parts.Take(4));

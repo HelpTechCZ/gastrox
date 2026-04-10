@@ -10,6 +10,17 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.6.1] — 2026-04-10
+
+### Opraveno
+- **Auto-update nefungoval:** aktualizace stahovala ZIP a `.bat` se pokoušel xcopy do `C:\Gastrox\` bez admin práv → tiše selhalo. Nyní UpdateService preferuje stahování **setup.exe** (Inno Setup instalátor) a spouští ho s `Verb = "runas"` (UAC elevace) a `/SILENT /CLOSEAPPLICATIONS`. Instalátor sám zavře běžící aplikaci, přepíše soubory a zachová `sklad.db`. ZIP+bat zůstává jako fallback pro portable instalace.
+
+### Soubory
+- `Gastrox/Services/UpdateService.cs` — kompletně přepracovaný
+- `Gastrox/Gastrox.csproj`
+
+---
+
 ## [0.6.0] — 2026-04-10
 
 ### Přidáno
@@ -298,7 +309,8 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
-[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/HelpTechCZ/gastrox/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/HelpTechCZ/gastrox/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.3...v0.6.0
 [0.5.3]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/HelpTechCZ/gastrox/compare/v0.5.1...v0.5.2
