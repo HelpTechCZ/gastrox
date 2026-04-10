@@ -10,6 +10,13 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.7.2] — 2026-04-10
+
+### Opraveno
+- **Auto-update:** po tiché instalaci (`/SILENT`) se program nespouštěl — odstraněn `skipifsilent` flag z Inno Setup `[Run]` sekce, takže se Gastrox automaticky spustí i po aktualizaci.
+
+---
+
 ## [0.7.1] — 2026-04-10
 
 ### Upraveno
