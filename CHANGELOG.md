@@ -10,6 +10,13 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.12.1] — 2026-04-16
+
+### Upraveno
+- **Zmenšení písma v PDF dokladech** — všechny font size hodnoty v příjemkách, výdejkách i převodkách sníženy (default 10→8, titulek 22→18, metadata 11→9, hlavičky tabulek 9→8, patička 8→7). PDF tak lépe nasadí více položek na jednu stránku.
+
+---
+
 ## [0.12.0] — 2026-04-16
 
 ### Přidáno

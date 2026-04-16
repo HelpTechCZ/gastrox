@@ -38,7 +38,7 @@ public static class PdfService
                 page.Size(PageSizes.A4);
                 page.MarginHorizontal(40);
                 page.MarginVertical(30);
-                page.DefaultTextStyle(x => x.FontSize(10));
+                page.DefaultTextStyle(x => x.FontSize(8));
 
                 page.Header().Column(col =>
                 {
@@ -46,14 +46,14 @@ public static class PdfService
                     {
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text("PŘÍJEMKA").FontSize(22).Bold();
+                            c.Item().Text("PŘÍJEMKA").FontSize(18).Bold();
                             c.Item().Text($"Číslo dokladu: {p.CisloDokladu}")
-                                .FontSize(11).FontColor(Colors.Grey.Darken1);
+                                .FontSize(9).FontColor(Colors.Grey.Darken1);
                             c.Item().Text($"Datum přijetí: {p.DatumPrijeti:d.M.yyyy}")
-                                .FontSize(11).FontColor(Colors.Grey.Darken1);
+                                .FontSize(9).FontColor(Colors.Grey.Darken1);
                             if (!string.IsNullOrWhiteSpace(p.SkladNazev))
                                 c.Item().Text($"Sklad: {p.SkladNazev}")
-                                    .FontSize(11).FontColor(Colors.Grey.Darken1);
+                                    .FontSize(9).FontColor(Colors.Grey.Darken1);
                         });
                         row.ConstantItem(220).Column(c => PsatFirmu(c, firma));
                     });
@@ -66,15 +66,15 @@ public static class PdfService
                     {
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text("Dodavatel").FontSize(9).FontColor(Colors.Grey.Darken1);
+                            c.Item().Text("Dodavatel").FontSize(7).FontColor(Colors.Grey.Darken1);
                             c.Item().Text(string.IsNullOrWhiteSpace(p.Dodavatel) ? "—" : p.Dodavatel!)
-                                .FontSize(11).Bold();
+                                .FontSize(9).Bold();
                         });
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text("Číslo faktury").FontSize(9).FontColor(Colors.Grey.Darken1);
+                            c.Item().Text("Číslo faktury").FontSize(7).FontColor(Colors.Grey.Darken1);
                             c.Item().Text(string.IsNullOrWhiteSpace(p.CisloFaktury) ? "—" : p.CisloFaktury!)
-                                .FontSize(11).Bold();
+                                .FontSize(9).Bold();
                         });
                     });
 
@@ -93,7 +93,7 @@ public static class PdfService
                             cols.RelativeColumn(1.4f);
                         });
 
-                        var hdrStyle = TextStyle.Default.Bold().FontSize(9);
+                        var hdrStyle = TextStyle.Default.Bold().FontSize(8);
                         table.Header(h =>
                         {
                             h.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Zboží").Style(hdrStyle);
@@ -125,15 +125,15 @@ public static class PdfService
 
                     if (!string.IsNullOrWhiteSpace(p.Poznamka))
                     {
-                        col.Item().PaddingTop(12).Text("Poznámka").FontSize(9).FontColor(Colors.Grey.Darken1);
-                        col.Item().Text(p.Poznamka!).FontSize(10);
+                        col.Item().PaddingTop(12).Text("Poznámka").FontSize(7).FontColor(Colors.Grey.Darken1);
+                        col.Item().Text(p.Poznamka!).FontSize(8);
                     }
                 });
 
                 page.Footer().Column(col =>
                 {
                     col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
-                    col.Item().PaddingTop(8).Text($"Položek: {radky.Count}").FontSize(10).Bold();
+                    col.Item().PaddingTop(8).Text($"Položek: {radky.Count}").FontSize(8).Bold();
 
                     // DPH sumář po sazbách
                     var dphSkupiny = radky
@@ -157,7 +157,7 @@ public static class PdfService
                             c.RelativeColumn(1.3f);
                             c.RelativeColumn(1.3f);
                         });
-                        var h = TextStyle.Default.Bold().FontSize(9);
+                        var h = TextStyle.Default.Bold().FontSize(8);
                         t.Header(hdr =>
                         {
                             hdr.Cell().Background(Colors.Grey.Lighten3).Padding(4).Text("Sazba").Style(h);
@@ -182,7 +182,7 @@ public static class PdfService
 
                     col.Item().PaddingTop(12).AlignCenter()
                         .Text($"Gastrox – vygenerováno {DateTime.Now:d.M.yyyy HH:mm}")
-                        .FontSize(8).FontColor(Colors.Grey.Medium);
+                        .FontSize(7).FontColor(Colors.Grey.Medium);
                 });
             });
         }).GeneratePdf(path);
@@ -210,7 +210,7 @@ public static class PdfService
                 page.Size(PageSizes.A4);
                 page.MarginHorizontal(40);
                 page.MarginVertical(30);
-                page.DefaultTextStyle(x => x.FontSize(10));
+                page.DefaultTextStyle(x => x.FontSize(8));
 
                 page.Header().Column(col =>
                 {
@@ -218,14 +218,14 @@ public static class PdfService
                     {
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text("VÝDEJKA").FontSize(22).Bold();
+                            c.Item().Text("VÝDEJKA").FontSize(18).Bold();
                             c.Item().Text($"Číslo dokladu: {v.CisloDokladu}")
-                                .FontSize(11).FontColor(Colors.Grey.Darken1);
+                                .FontSize(9).FontColor(Colors.Grey.Darken1);
                             c.Item().Text($"Datum výdeje: {v.DatumVydeje:d.M.yyyy}")
-                                .FontSize(11).FontColor(Colors.Grey.Darken1);
+                                .FontSize(9).FontColor(Colors.Grey.Darken1);
                             if (!string.IsNullOrWhiteSpace(v.SkladNazev))
                                 c.Item().Text($"Sklad: {v.SkladNazev}")
-                                    .FontSize(11).FontColor(Colors.Grey.Darken1);
+                                    .FontSize(9).FontColor(Colors.Grey.Darken1);
                         });
                         row.ConstantItem(220).Column(c => PsatFirmu(c, firma));
                     });
@@ -238,13 +238,13 @@ public static class PdfService
                     {
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text("Středisko").FontSize(9).FontColor(Colors.Grey.Darken1);
-                            c.Item().Text(v.StrediskoLabel).FontSize(11).Bold();
+                            c.Item().Text("Středisko").FontSize(7).FontColor(Colors.Grey.Darken1);
+                            c.Item().Text(v.StrediskoLabel).FontSize(9).Bold();
                         });
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text("Typ výdeje").FontSize(9).FontColor(Colors.Grey.Darken1);
-                            c.Item().Text(v.TypVydejeLabel).FontSize(11).Bold();
+                            c.Item().Text("Typ výdeje").FontSize(7).FontColor(Colors.Grey.Darken1);
+                            c.Item().Text(v.TypVydejeLabel).FontSize(9).Bold();
                         });
                     });
 
@@ -259,7 +259,7 @@ public static class PdfService
                             cols.RelativeColumn(1.5f);
                         });
 
-                        var hdrStyle = TextStyle.Default.Bold().FontSize(9);
+                        var hdrStyle = TextStyle.Default.Bold().FontSize(8);
                         table.Header(h =>
                         {
                             h.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Zboží").Style(hdrStyle);
@@ -284,15 +284,15 @@ public static class PdfService
 
                     if (!string.IsNullOrWhiteSpace(v.Poznamka))
                     {
-                        col.Item().PaddingTop(12).Text("Poznámka").FontSize(9).FontColor(Colors.Grey.Darken1);
-                        col.Item().Text(v.Poznamka!).FontSize(10);
+                        col.Item().PaddingTop(12).Text("Poznámka").FontSize(7).FontColor(Colors.Grey.Darken1);
+                        col.Item().Text(v.Poznamka!).FontSize(8);
                     }
                 });
 
                 page.Footer().Column(col =>
                 {
                     col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
-                    col.Item().PaddingTop(8).Text($"Položek: {radky.Count}").FontSize(10).Bold();
+                    col.Item().PaddingTop(8).Text($"Položek: {radky.Count}").FontSize(8).Bold();
 
                     // DPH sumář po sazbách
                     var dphSkupiny = radky
@@ -316,7 +316,7 @@ public static class PdfService
                             c.RelativeColumn(1.3f);
                             c.RelativeColumn(1.3f);
                         });
-                        var h = TextStyle.Default.Bold().FontSize(9);
+                        var h = TextStyle.Default.Bold().FontSize(8);
                         t.Header(hdr =>
                         {
                             hdr.Cell().Background(Colors.Grey.Lighten3).Padding(4).Text("Sazba").Style(h);
@@ -341,7 +341,7 @@ public static class PdfService
 
                     col.Item().PaddingTop(12).AlignCenter()
                         .Text($"Gastrox – vygenerováno {DateTime.Now:d.M.yyyy HH:mm}")
-                        .FontSize(8).FontColor(Colors.Grey.Medium);
+                        .FontSize(7).FontColor(Colors.Grey.Medium);
                 });
             });
         }).GeneratePdf(path);
@@ -367,7 +367,7 @@ public static class PdfService
                 page.Size(PageSizes.A4);
                 page.MarginHorizontal(40);
                 page.MarginVertical(30);
-                page.DefaultTextStyle(x => x.FontSize(10));
+                page.DefaultTextStyle(x => x.FontSize(8));
 
                 page.Header().Column(col =>
                 {
@@ -375,11 +375,11 @@ public static class PdfService
                     {
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text("PŘEVODKA").FontSize(22).Bold();
+                            c.Item().Text("PŘEVODKA").FontSize(18).Bold();
                             c.Item().Text($"Číslo dokladu: {p.CisloDokladu}")
-                                .FontSize(11).FontColor(Colors.Grey.Darken1);
+                                .FontSize(9).FontColor(Colors.Grey.Darken1);
                             c.Item().Text($"Datum převodu: {p.DatumPrevodu:d.M.yyyy}")
-                                .FontSize(11).FontColor(Colors.Grey.Darken1);
+                                .FontSize(9).FontColor(Colors.Grey.Darken1);
                         });
                         row.ConstantItem(220).Column(c => PsatFirmu(c, firma));
                     });
@@ -392,14 +392,14 @@ public static class PdfService
                     {
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text("Ze skladu").FontSize(9).FontColor(Colors.Grey.Darken1);
-                            c.Item().Text(p.SkladZdrojNazev).FontSize(12).Bold().FontColor(Colors.Red.Darken2);
+                            c.Item().Text("Ze skladu").FontSize(7).FontColor(Colors.Grey.Darken1);
+                            c.Item().Text(p.SkladZdrojNazev).FontSize(10).Bold().FontColor(Colors.Red.Darken2);
                         });
-                        row.ConstantItem(40).AlignCenter().AlignMiddle().Text("➜").FontSize(18);
+                        row.ConstantItem(40).AlignCenter().AlignMiddle().Text("➜").FontSize(14);
                         row.RelativeItem().Column(c =>
                         {
-                            c.Item().Text("Do skladu").FontSize(9).FontColor(Colors.Grey.Darken1);
-                            c.Item().Text(p.SkladCilNazev).FontSize(12).Bold().FontColor(Colors.Green.Darken2);
+                            c.Item().Text("Do skladu").FontSize(7).FontColor(Colors.Grey.Darken1);
+                            c.Item().Text(p.SkladCilNazev).FontSize(10).Bold().FontColor(Colors.Green.Darken2);
                         });
                     });
 
@@ -411,7 +411,7 @@ public static class PdfService
                             cols.RelativeColumn(2);
                         });
 
-                        var hdrStyle = TextStyle.Default.Bold().FontSize(9);
+                        var hdrStyle = TextStyle.Default.Bold().FontSize(8);
                         table.Header(h =>
                         {
                             h.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Zboží").Style(hdrStyle);
@@ -429,8 +429,8 @@ public static class PdfService
 
                     if (!string.IsNullOrWhiteSpace(p.Poznamka))
                     {
-                        col.Item().PaddingTop(12).Text("Poznámka").FontSize(9).FontColor(Colors.Grey.Darken1);
-                        col.Item().Text(p.Poznamka!).FontSize(10);
+                        col.Item().PaddingTop(12).Text("Poznámka").FontSize(7).FontColor(Colors.Grey.Darken1);
+                        col.Item().Text(p.Poznamka!).FontSize(8);
                     }
 
                     col.Item().PaddingTop(30).Row(row =>
@@ -438,13 +438,13 @@ public static class PdfService
                         row.RelativeItem().Column(c =>
                         {
                             c.Item().LineHorizontal(0.5f).LineColor(Colors.Grey.Darken1);
-                            c.Item().AlignCenter().Text("Vydal (zdrojový sklad)").FontSize(9);
+                            c.Item().AlignCenter().Text("Vydal (zdrojový sklad)").FontSize(7);
                         });
                         row.ConstantItem(40);
                         row.RelativeItem().Column(c =>
                         {
                             c.Item().LineHorizontal(0.5f).LineColor(Colors.Grey.Darken1);
-                            c.Item().AlignCenter().Text("Přijal (cílový sklad)").FontSize(9);
+                            c.Item().AlignCenter().Text("Přijal (cílový sklad)").FontSize(7);
                         });
                     });
                 });
@@ -452,10 +452,10 @@ public static class PdfService
                 page.Footer().Column(col =>
                 {
                     col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
-                    col.Item().PaddingTop(8).Text($"Položek: {radky.Count}").FontSize(10).Bold();
+                    col.Item().PaddingTop(8).Text($"Položek: {radky.Count}").FontSize(8).Bold();
                     col.Item().PaddingTop(12).AlignCenter()
                         .Text($"Gastrox – vygenerováno {DateTime.Now:d.M.yyyy HH:mm}")
-                        .FontSize(8).FontColor(Colors.Grey.Medium);
+                        .FontSize(7).FontColor(Colors.Grey.Medium);
                 });
             });
         }).GeneratePdf(path);
@@ -470,13 +470,13 @@ public static class PdfService
     private static void PsatFirmu(ColumnDescriptor c, FirmaInfo firma)
     {
         if (!string.IsNullOrWhiteSpace(firma.Nazev))
-            c.Item().AlignRight().Text(firma.Nazev!).FontSize(11).Bold();
+            c.Item().AlignRight().Text(firma.Nazev!).FontSize(9).Bold();
         if (!string.IsNullOrWhiteSpace(firma.Ulice))
-            c.Item().AlignRight().Text(firma.Ulice!).FontSize(9).FontColor(Colors.Grey.Darken1);
+            c.Item().AlignRight().Text(firma.Ulice!).FontSize(8).FontColor(Colors.Grey.Darken1);
         var misto = string.Join(" ", new[] { firma.Psc, firma.Mesto }
             .Where(s => !string.IsNullOrWhiteSpace(s)));
         if (!string.IsNullOrWhiteSpace(misto))
-            c.Item().AlignRight().Text(misto).FontSize(9).FontColor(Colors.Grey.Darken1);
+            c.Item().AlignRight().Text(misto).FontSize(8).FontColor(Colors.Grey.Darken1);
         if (!string.IsNullOrWhiteSpace(firma.Ico) || !string.IsNullOrWhiteSpace(firma.Dic))
         {
             var idLine = string.Join(" · ", new[]
@@ -484,7 +484,7 @@ public static class PdfService
                 string.IsNullOrWhiteSpace(firma.Ico) ? null : $"IČO: {firma.Ico}",
                 string.IsNullOrWhiteSpace(firma.Dic) ? null : $"DIČ: {firma.Dic}"
             }.Where(s => s is not null));
-            c.Item().AlignRight().Text(idLine!).FontSize(9).FontColor(Colors.Grey.Darken1);
+            c.Item().AlignRight().Text(idLine!).FontSize(8).FontColor(Colors.Grey.Darken1);
         }
     }
 
