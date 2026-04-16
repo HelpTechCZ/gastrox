@@ -17,6 +17,18 @@ namespace Gastrox.ViewModels;
 public class UzaverkaViewModel : ViewModelBase
 {
     public ObservableCollection<SkladovaKarta> Karty { get; } = new();
+    public ObservableCollection<Sklad> Sklady { get; } = new();
+
+    private Sklad? _vybranySklad;
+    public Sklad? VybranySklad
+    {
+        get => _vybranySklad;
+        set
+        {
+            if (SetProperty(ref _vybranySklad, value))
+                NacistKarty();
+        }
+    }
 
     public decimal CelkemNakupBezDph => Karty.Sum(k => k.HodnotaNakupBezDPH);
     public decimal CelkemProdejSDph  => Karty.Sum(k => k.HodnotaProdejSDPH);
@@ -28,10 +40,26 @@ public class UzaverkaViewModel : ViewModelBase
 
     public UzaverkaViewModel()
     {
-        foreach (var k in DatabaseService.LoadAktivniKarty())
-            Karty.Add(k);
+        foreach (var s in DatabaseService.LoadSklady())
+            Sklady.Add(s);
+
+        NacistKarty();
 
         GenerovatPdfCommand = new RelayCommand(GenerovatPdf);
+    }
+
+    private void NacistKarty()
+    {
+        Karty.Clear();
+        var list = _vybranySklad is null
+            ? DatabaseService.LoadAktivniKarty()
+            : DatabaseService.LoadAktivniKartyProSklad(_vybranySklad.Id);
+        foreach (var k in list)
+            Karty.Add(k);
+
+        OnPropertyChanged(nameof(CelkemNakupBezDph));
+        OnPropertyChanged(nameof(CelkemProdejSDph));
+        OnPropertyChanged(nameof(PocetKaret));
     }
 
     private void GenerovatPdf()
@@ -41,7 +69,7 @@ public class UzaverkaViewModel : ViewModelBase
         // Uložit uzávěrku do DB
         try
         {
-            DatabaseService.SaveUzaverka(datum, Karty.ToList());
+            DatabaseService.SaveUzaverka(datum, Karty.ToList(), _vybranySklad?.Id);
         }
         catch (Exception ex)
         {
@@ -76,6 +104,10 @@ public class UzaverkaViewModel : ViewModelBase
                         col.Item().Text("Uzávěrka skladu")
                             .FontSize(22).Bold();
                         col.Item().Text($"Datum: {datum:d.M.yyyy  HH:mm}")
+                            .FontSize(11).FontColor(Colors.Grey.Darken1);
+                        col.Item().Text(_vybranySklad is null
+                                ? "Sklady: všechny (souhrnně)"
+                                : $"Sklad: {_vybranySklad.Nazev}")
                             .FontSize(11).FontColor(Colors.Grey.Darken1);
                         col.Item().PaddingBottom(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
                     });

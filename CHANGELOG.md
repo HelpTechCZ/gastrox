@@ -10,6 +10,26 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.10.0] — 2026-04-16
+
+### Přidáno
+- **Víceskladová podpora** — aplikace umí spravovat více fyzických skladů (sál, kuchyně, bar…).
+  - Nová tabulka `Sklad` + `SkladovyStav` (per-sklad stav zásob) + `Prevodka`/`PrevodkaRadek`.
+  - **Nastavení → Sklady:** CRUD skladů s přejmenováním, nastavením výchozího a deaktivací.
+  - **Sklad:** filtr kartotéky podle aktivního skladu (zobrazuje per-sklad stavy).
+  - **Naskladnit:** výběr cílového skladu, stavy se zapisují do zvoleného skladu.
+  - **Vyskladnit:** výběr zdrojového skladu, kontrola stavu per-sklad před výdejem.
+  - **Převody:** nový wizard pro přesun zásob mezi sklady (jeden doklad, dva pohyby).
+  - **Uzávěrka:** filtr skladu + zobrazení skladu v PDF hlavičce.
+  - **Pohyby:** filtr skladu, sloupec *Sklad* v příjemkách/výdejkách, záložka *Převody*.
+- **Verze a licence v bočním menu** — pod tlačítkem Nastavení se zobrazuje aktuální verze a datum vypršení licence.
+
+### Upraveno
+- `SavePrijemka`/`SaveVydejka` interně používají novou metodu `AplikujPohybInternal` — stavy se aktualizují per-sklad (`SkladovyStav`) a celkový součet na `SkladovaKarta` se přepočítává z agregace.
+- Migrace: `Sklad_Id` přidáno do `Prijemka`, `Vydejka`, `Inventura`, `Uzaverka`, `UzaverkaRadek`, `PohybSkladu`. Existující stavy karet přeneseny do výchozího skladu „Hlavní sklad".
+
+---
+
 ## [0.9.1] — 2026-04-10
 
 ### Upraveno

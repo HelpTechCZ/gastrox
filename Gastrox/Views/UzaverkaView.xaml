@@ -28,11 +28,28 @@
         </Grid.RowDefinitions>
 
         <!-- Hlavička -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="Uzávěrka skladu" FontSize="24" FontWeight="SemiBold"/>
-            <TextBlock Text="Aktuální stav všech skladových karet – vygenerujte PDF pro archivaci."
-                       Foreground="#666" Margin="0,6,0,0"/>
-        </StackPanel>
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Uzávěrka skladu" FontSize="24" FontWeight="SemiBold"/>
+                <TextBlock Text="Aktuální stav skladových karet – vygenerujte PDF pro archivaci."
+                           Foreground="#666" Margin="0,6,0,0"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Sklad:" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="#666"/>
+                <ComboBox ItemsSource="{Binding Sklady}"
+                          SelectedItem="{Binding VybranySklad}"
+                          DisplayMemberPath="Nazev"
+                          MinWidth="180" Padding="8,6"
+                          ToolTip="Prázdný výběr = všechny sklady souhrnně"/>
+                <Button Content="✕" Margin="4,0,0,0" Padding="8,4"
+                        ToolTip="Zrušit filtr skladu"
+                        Click="VymazatFiltr_Click"/>
+            </StackPanel>
+        </Grid>
 
         <!-- Přehled karet -->
         <Border Grid.Row="1" Background="White" CornerRadius="14" Padding="16">

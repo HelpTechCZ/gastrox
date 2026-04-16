@@ -11,52 +11,57 @@ using Gastrox.Services;
 namespace Gastrox.ViewModels;
 
 /// <summary>
-/// Třístupňový průvodce výdejem zboží:
-/// 1) Typ výdeje + středisko
+/// Třístupňový průvodce převodem mezi sklady:
+/// 1) Zdrojový + cílový sklad
 /// 2) Položky (zboží + množství)
 /// 3) Souhrn + uložení
 /// </summary>
-public class VydejkaWizardViewModel : ViewModelBase
+public class PrevodWizardViewModel : ViewModelBase
 {
-    public ObservableCollection<SkladovaKarta> DostupneZbozi { get; private set; }
     public ObservableCollection<Sklad> Sklady { get; }
-    public ObservableCollection<VydejkaRadekViewModel> Radky { get; } = new();
+    public ObservableCollection<SkladovaKarta> DostupneZbozi { get; } = new();
+    public ObservableCollection<PrevodRadekViewModel> Radky { get; } = new();
 
-    private Sklad? _vybranySklad;
-    public Sklad? VybranySklad
+    private int _krok = 1;
+    public int Krok { get => _krok; set { if (SetProperty(ref _krok, value)) NotifyKrok(); } }
+    public bool JeKrok1 => Krok == 1;
+    public bool JeKrok2 => Krok == 2;
+    public bool JeKrok3 => Krok == 3;
+
+    private string _cisloDokladu;
+    public string CisloDokladu { get => _cisloDokladu; set => SetProperty(ref _cisloDokladu, value); }
+
+    private DateTime _datum = DateTime.Now;
+    public DateTime DatumPrevodu { get => _datum; set => SetProperty(ref _datum, value); }
+
+    private string? _poznamka;
+    public string? Poznamka { get => _poznamka; set => SetProperty(ref _poznamka, value); }
+
+    private Sklad? _skladZdroj;
+    public Sklad? SkladZdroj
     {
-        get => _vybranySklad;
+        get => _skladZdroj;
         set
         {
-            if (SetProperty(ref _vybranySklad, value))
+            if (SetProperty(ref _skladZdroj, value))
             {
-                NacistZboziProSklad();
+                NacistZboziProZdroj();
                 CommandManager.InvalidateRequerySuggested();
             }
         }
     }
 
-    private int _krok = 1;
-    public int Krok { get => _krok; set { if (SetProperty(ref _krok, value)) NotifyKrok(); } }
+    private Sklad? _skladCil;
+    public Sklad? SkladCil
+    {
+        get => _skladCil;
+        set
+        {
+            if (SetProperty(ref _skladCil, value))
+                CommandManager.InvalidateRequerySuggested();
+        }
+    }
 
-    public bool JeKrok1 => Krok == 1;
-    public bool JeKrok2 => Krok == 2;
-    public bool JeKrok3 => Krok == 3;
-
-    // ---------- Krok 1: typ + středisko ----------
-    public Array TypyVydeje { get; } = Enum.GetValues(typeof(TypVydeje));
-    public Array Strediska  { get; } = Enum.GetValues(typeof(Stredisko));
-
-    private TypVydeje _typVydeje = TypVydeje.Prodej;
-    public TypVydeje TypVydeje { get => _typVydeje; set => SetProperty(ref _typVydeje, value); }
-
-    private Stredisko _stredisko = Stredisko.Bar;
-    public Stredisko Stredisko { get => _stredisko; set => SetProperty(ref _stredisko, value); }
-
-    private string? _poznamka;
-    public string? Poznamka { get => _poznamka; set => SetProperty(ref _poznamka, value); }
-
-    // ---------- Commands ----------
     public ICommand DalsiCommand { get; }
     public ICommand ZpetCommand { get; }
     public ICommand PridatRadekCommand { get; }
@@ -65,20 +70,20 @@ public class VydejkaWizardViewModel : ViewModelBase
 
     public event Action? Hotovo;
 
-    public VydejkaWizardViewModel()
+    public PrevodWizardViewModel()
     {
+        _cisloDokladu = DatabaseService.GenerujCisloPrevodky();
         Sklady = new ObservableCollection<Sklad>(DatabaseService.LoadSklady());
-        _vybranySklad = Sklady.FirstOrDefault(s => s.JeVychozi) ?? Sklady.FirstOrDefault();
-
-        DostupneZbozi = new ObservableCollection<SkladovaKarta>();
-        NacistZboziProSklad();
+        _skladZdroj = Sklady.FirstOrDefault(s => s.JeVychozi) ?? Sklady.FirstOrDefault();
+        _skladCil = Sklady.FirstOrDefault(s => s.Id != (_skladZdroj?.Id ?? 0));
+        NacistZboziProZdroj();
 
         Radky.CollectionChanged += (_, __) => OnPropertyChanged(nameof(MuzeUlozit));
 
         DalsiCommand = new RelayCommand(_ => Krok++, _ => MuzeDalsi());
         ZpetCommand  = new RelayCommand(_ => Krok--, _ => Krok > 1);
         PridatRadekCommand  = new RelayCommand(_ => PridejRadek());
-        OdebratRadekCommand = new RelayCommand(p => { if (p is VydejkaRadekViewModel r) Radky.Remove(r); });
+        OdebratRadekCommand = new RelayCommand(p => { if (p is PrevodRadekViewModel r) Radky.Remove(r); });
         UlozitCommand = new RelayCommand(_ => Uloz(), _ => MuzeUlozit);
 
         PridejRadek();
@@ -95,26 +100,27 @@ public class VydejkaWizardViewModel : ViewModelBase
 
     private bool MuzeDalsi()
     {
-        if (Krok == 1) return VybranySklad is not null;
-        if (Krok == 2) return Radky.Count > 0 && Radky.All(r => r.JeMnozstviPlatne);
+        if (Krok == 1)
+            return SkladZdroj is not null && SkladCil is not null && SkladZdroj.Id != SkladCil.Id
+                && !string.IsNullOrWhiteSpace(CisloDokladu);
+        if (Krok == 2)
+            return Radky.Count > 0 && Radky.All(r => r.JeMnozstviPlatne);
         return false;
-    }
-
-    private void NacistZboziProSklad()
-    {
-        DostupneZbozi.Clear();
-        var karty = _vybranySklad is null
-            ? DatabaseService.LoadAktivniKarty()
-            : DatabaseService.LoadAktivniKartyProSklad(_vybranySklad.Id);
-        foreach (var k in karty)
-            DostupneZbozi.Add(k);
     }
 
     public bool MuzeUlozit => Krok == 3 && Radky.Count > 0 && Radky.All(r => r.JeMnozstviPlatne);
 
+    private void NacistZboziProZdroj()
+    {
+        DostupneZbozi.Clear();
+        if (_skladZdroj is null) return;
+        foreach (var k in DatabaseService.LoadAktivniKartyProSklad(_skladZdroj.Id))
+            DostupneZbozi.Add(k);
+    }
+
     private void PridejRadek()
     {
-        var r = new VydejkaRadekViewModel();
+        var r = new PrevodRadekViewModel();
         r.PropertyChanged += RadekZmenen;
         Radky.Add(r);
     }
@@ -127,27 +133,28 @@ public class VydejkaWizardViewModel : ViewModelBase
 
     private void Uloz()
     {
-        var v = new Vydejka
+        if (SkladZdroj is null || SkladCil is null) return;
+
+        var p = new Prevodka
         {
-            CisloDokladu = $"VY-{DateTime.Now:yyyyMMdd-HHmmss}",
-            DatumVydeje  = DateTime.Now,
-            Stredisko    = Stredisko,
-            TypVydeje    = TypVydeje,
+            CisloDokladu = CisloDokladu,
+            DatumPrevodu = DatumPrevodu,
+            SkladZdrojId = SkladZdroj.Id,
+            SkladCilId   = SkladCil.Id,
             Poznamka     = Poznamka,
-            SkladId      = VybranySklad?.Id ?? 0,
             Radky        = Radky.Select(r => r.ToModel()).ToList()
         };
 
         try
         {
-            DatabaseService.SaveVydejka(v);
-            MessageBox.Show($"Výdejka uložena: {v.CisloDokladu}", "Hotovo",
+            DatabaseService.SavePrevodka(p);
+            MessageBox.Show($"Převodka uložena: {p.CisloDokladu}", "Hotovo",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             Hotovo?.Invoke();
         }
         catch (Exception ex)
         {
-            MessageBox.Show("Nepodařilo se uložit výdejku:\n" + ex.Message, "Chyba",
+            MessageBox.Show("Nepodařilo se uložit převodku:\n" + ex.Message, "Chyba",
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }

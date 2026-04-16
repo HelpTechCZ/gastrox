@@ -15,6 +15,34 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         ShowDashboard();
+        UpdateStatusBar();
+    }
+
+    private void UpdateStatusBar()
+    {
+        TxtVerze.Text = $"v{UpdateService.CurrentVersion}";
+
+        var lic = LicenseService.Current;
+        if (lic is null || !lic.IsValid)
+        {
+            TxtLicence.Text = "DEMO verze";
+            TxtLicence.Foreground = new System.Windows.Media.SolidColorBrush(
+                System.Windows.Media.Color.FromRgb(0xd1, 0x34, 0x38));
+        }
+        else if (!string.IsNullOrEmpty(lic.Expires) && DateTime.TryParse(lic.Expires, out var exp))
+        {
+            var days = (int)Math.Ceiling((exp - DateTime.Now).TotalDays);
+            TxtLicence.Text = days > 0
+                ? $"Licence: {exp:dd.MM.yyyy} ({days} dní)"
+                : "Licence vypršela";
+            TxtLicence.Foreground = new System.Windows.Media.SolidColorBrush(
+                days > 30 ? System.Windows.Media.Color.FromRgb(0x88, 0x88, 0x88)
+                           : System.Windows.Media.Color.FromRgb(0xd1, 0x34, 0x38));
+        }
+        else
+        {
+            TxtLicence.Text = "Licence: aktivní";
+        }
     }
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -79,6 +107,13 @@ public partial class MainWindow : Window
         MainContent.Content = v;
     }
 
+    private void ShowPrevody()
+    {
+        var v = new PrevodWizardView();
+        v.Hotovo += ShowDashboard;
+        MainContent.Content = v;
+    }
+
     private void ShowUzaverka()
     {
         var v = new UzaverkaView();
@@ -122,6 +157,7 @@ public partial class MainWindow : Window
     private void Sklad_Click(object sender, RoutedEventArgs e)      => MainContent.Content = new SkladView();
     private void Naskladnit_Click(object sender, RoutedEventArgs e) => ShowNaskladnit();
     private void Vyskladnit_Click(object sender, RoutedEventArgs e) => ShowVyskladnit();
+    private void Prevody_Click(object sender, RoutedEventArgs e)    => ShowPrevody();
     private void Uzaverka_Click(object sender, RoutedEventArgs e)   => ShowUzaverka();
     private void Pohyby_Click(object sender, RoutedEventArgs e)     => MainContent.Content = new PohybyView();
     private void Nastaveni_Click(object sender, RoutedEventArgs e)  => MainContent.Content = new NastaveniView();

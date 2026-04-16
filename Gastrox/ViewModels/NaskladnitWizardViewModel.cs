@@ -20,7 +20,19 @@ public class NaskladnitWizardViewModel : ViewModelBase
 {
     public ObservableCollection<SkladovaKarta> DostupneZbozi { get; }
     public ObservableCollection<SazbaDPH> DostupneSazby { get; }
+    public ObservableCollection<Sklad> Sklady { get; }
     public ObservableCollection<PrijemkaRadekViewModel> Radky { get; } = new();
+
+    private Sklad? _vybranySklad;
+    public Sklad? VybranySklad
+    {
+        get => _vybranySklad;
+        set
+        {
+            if (SetProperty(ref _vybranySklad, value))
+                CommandManager.InvalidateRequerySuggested();
+        }
+    }
 
     private int _krok = 1;
     public int Krok { get => _krok; set { if (SetProperty(ref _krok, value)) NotifyKrok(); } }
@@ -60,6 +72,8 @@ public class NaskladnitWizardViewModel : ViewModelBase
 
         DostupneZbozi = new ObservableCollection<SkladovaKarta>(DatabaseService.LoadAktivniKarty());
         DostupneSazby = new ObservableCollection<SazbaDPH>(DatabaseService.LoadAktivniSazbyDph());
+        Sklady = new ObservableCollection<Sklad>(DatabaseService.LoadSklady());
+        _vybranySklad = Sklady.FirstOrDefault(s => s.JeVychozi) ?? Sklady.FirstOrDefault();
 
         Radky.CollectionChanged += (_, __) =>
         {
@@ -95,7 +109,7 @@ public class NaskladnitWizardViewModel : ViewModelBase
 
     private bool MuzeDalsi()
     {
-        if (Krok == 1) return !string.IsNullOrWhiteSpace(CisloDokladu);
+        if (Krok == 1) return !string.IsNullOrWhiteSpace(CisloDokladu) && VybranySklad is not null;
         if (Krok == 2) return Radky.Count > 0 && Radky.All(r => r.VybraneZbozi is not null && r.PocetBaleni > 0);
         return false;
     }
@@ -130,6 +144,7 @@ public class NaskladnitWizardViewModel : ViewModelBase
             Dodavatel    = Dodavatel,
             CisloFaktury = CisloFaktury,
             Poznamka     = Poznamka,
+            SkladId      = VybranySklad?.Id ?? 0,
             CelkemBezDPH = CelkemBezDPH,
             CelkemSDPH   = CelkemSDPH,
             Radky        = Radky.Select(r => r.ToModel()).ToList()

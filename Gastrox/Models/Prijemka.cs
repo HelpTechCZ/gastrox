@@ -12,6 +12,12 @@ public class Prijemka
     public string? CisloFaktury { get; set; }
     public string? Poznamka { get; set; }
 
+    /// <summary>Cílový sklad pro tuto příjemku.</summary>
+    public int SkladId { get; set; }
+
+    /// <summary>Zobrazovací název skladu (join).</summary>
+    public string SkladNazev { get; set; } = string.Empty;
+
     public decimal CelkemBezDPH { get; set; }
     public decimal CelkemSDPH { get; set; }
 

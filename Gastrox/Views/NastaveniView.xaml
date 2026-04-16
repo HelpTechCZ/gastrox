@@ -186,6 +186,70 @@
                 </Border>
             </TabItem>
 
+            <!-- TAB SKLADY -->
+            <TabItem Header="Sklady">
+                <Border Background="White" CornerRadius="14" Padding="24" Margin="0,8,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="320"/>
+                        </Grid.ColumnDefinitions>
+
+                        <DataGrid Grid.Column="0"
+                                  ItemsSource="{Binding Sklady}"
+                                  SelectedItem="{Binding VybranySklad}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  Margin="0,0,16,0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Název" Binding="{Binding Nazev}" Width="*"/>
+                                <DataGridCheckBoxColumn Header="Výchozí" Binding="{Binding JeVychozi}" Width="80"/>
+                                <DataGridCheckBoxColumn Header="Aktivní" Binding="{Binding JeAktivni}" Width="80"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Přidat sklad" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"/>
+
+                            <TextBlock Text="Název skladu"/>
+                            <TextBox Text="{Binding NovySkladNazev, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,4,0,10" Padding="8,6"/>
+
+                            <CheckBox Content="Nastavit jako výchozí sklad"
+                                      IsChecked="{Binding NovySkladVychozi}"
+                                      Margin="0,4,0,14"/>
+
+                            <Button Content="+ Přidat sklad"
+                                    Command="{Binding PridatSkladCommand}"
+                                    Padding="14,8" Background="#0078D4" Foreground="White"
+                                    BorderThickness="0" HorizontalAlignment="Left" FontWeight="SemiBold"/>
+
+                            <Border Margin="0,16,0,16" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0"/>
+
+                            <TextBlock Text="Vybraný sklad" FontWeight="SemiBold" Margin="0,0,0,8"/>
+
+                            <Button Content="Přejmenovat"
+                                    Command="{Binding PrejmenovatSkladCommand}"
+                                    Padding="14,8" Margin="0,0,0,8"
+                                    HorizontalAlignment="Left"/>
+                            <Button Content="Nastavit jako výchozí"
+                                    Command="{Binding NastavitVychoziSkladCommand}"
+                                    Padding="14,8" Margin="0,0,0,8"
+                                    HorizontalAlignment="Left"/>
+                            <Button Content="Deaktivovat"
+                                    Command="{Binding DeaktivovatSkladCommand}"
+                                    Padding="14,8" Background="#D13438" Foreground="White"
+                                    BorderThickness="0" HorizontalAlignment="Left"/>
+
+                            <TextBlock Text="Výchozí sklad nelze deaktivovat. Nejdřív nastavte jiný jako výchozí."
+                                       Foreground="#888" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </TabItem>
+
             <!-- TAB LICENCE -->
             <TabItem Header="Licence">
                 <Border Background="White" CornerRadius="14" Padding="24" Margin="0,8,0,0">

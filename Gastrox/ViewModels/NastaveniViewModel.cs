@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Gastrox.Commands;
 using Gastrox.Models;
 using Gastrox.Services;
+using Gastrox.Views;
 using Microsoft.Win32;
 
 namespace Gastrox.ViewModels;
@@ -66,6 +68,18 @@ public class NastaveniViewModel : ViewModelBase
     private int _novaKategoriePoradi;
     public int NovaKategoriePoradi { get => _novaKategoriePoradi; set => SetProperty(ref _novaKategoriePoradi, value); }
 
+    // ---------- Sklady ----------
+    public ObservableCollection<Sklad> Sklady { get; } = new();
+
+    private Sklad? _vybranySklad;
+    public Sklad? VybranySklad { get => _vybranySklad; set => SetProperty(ref _vybranySklad, value); }
+
+    private string _novySkladNazev = string.Empty;
+    public string NovySkladNazev { get => _novySkladNazev; set => SetProperty(ref _novySkladNazev, value); }
+
+    private bool _novySkladVychozi;
+    public bool NovySkladVychozi { get => _novySkladVychozi; set => SetProperty(ref _novySkladVychozi, value); }
+
     // ---------- Licence ----------
     private string _licenseKey = string.Empty;
     public string LicenseKey { get => _licenseKey; set => SetProperty(ref _licenseKey, value); }
@@ -111,6 +125,10 @@ public class NastaveniViewModel : ViewModelBase
     public ICommand ImportZalohyCommand { get; }
     public ICommand AktivovatLicenciCommand { get; }
     public ICommand OdebratLicenciCommand { get; }
+    public ICommand PridatSkladCommand { get; }
+    public ICommand DeaktivovatSkladCommand { get; }
+    public ICommand NastavitVychoziSkladCommand { get; }
+    public ICommand PrejmenovatSkladCommand { get; }
 
     public NastaveniViewModel()
     {
@@ -132,6 +150,15 @@ public class NastaveniViewModel : ViewModelBase
         AktivovatLicenciCommand = new RelayCommand(async _ => await AktivovatLicenciAsync(),
             _ => !string.IsNullOrWhiteSpace(LicenseKey));
         OdebratLicenciCommand = new RelayCommand(_ => OdebratLicenci());
+
+        PridatSkladCommand = new RelayCommand(_ => PridejSklad(),
+            _ => !string.IsNullOrWhiteSpace(NovySkladNazev));
+        DeaktivovatSkladCommand = new RelayCommand(_ => DeaktivujSklad(),
+            _ => VybranySklad is not null && !VybranySklad.JeVychozi);
+        NastavitVychoziSkladCommand = new RelayCommand(_ => NastavVychoziSklad(),
+            _ => VybranySklad is not null && !VybranySklad.JeVychozi);
+        PrejmenovatSkladCommand = new RelayCommand(_ => PrejmenujSklad(),
+            _ => VybranySklad is not null);
     }
 
     public void Nacti()
@@ -162,6 +189,54 @@ public class NastaveniViewModel : ViewModelBase
 
         // Po načtení doporučit další pořadí o 10 výš než maximum
         NovaKategoriePoradi = Kategorie.Count == 0 ? 10 : (Kategorie.Max(k => k.Poradi) + 10);
+
+        Sklady.Clear();
+        foreach (var s in DatabaseService.LoadSklady(jenAktivni: false))
+            Sklady.Add(s);
+    }
+
+    // ---------- Sklady ----------
+    private void PridejSklad()
+    {
+        DatabaseService.SaveSklad(new Sklad
+        {
+            Nazev = NovySkladNazev.Trim(),
+            JeVychozi = NovySkladVychozi,
+            JeAktivni = true,
+            Poradi = Sklady.Count == 0 ? 10 : (Sklady.Max(s => s.Poradi) + 10)
+        });
+        NovySkladNazev = string.Empty;
+        NovySkladVychozi = false;
+        Nacti();
+    }
+
+    private void DeaktivujSklad()
+    {
+        if (VybranySklad is null || VybranySklad.JeVychozi) return;
+        var res = MessageBox.Show(
+            $"Deaktivovat sklad '{VybranySklad.Nazev}'?\n\nHistorie zůstane zachována, ale sklad nebude možné vybrat v nových dokladech.",
+            "Deaktivace skladu", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        if (res != MessageBoxResult.Yes) return;
+        DatabaseService.DeactivateSklad(VybranySklad.Id);
+        Nacti();
+    }
+
+    private void NastavVychoziSklad()
+    {
+        if (VybranySklad is null) return;
+        VybranySklad.JeVychozi = true;
+        DatabaseService.SaveSklad(VybranySklad);
+        Nacti();
+    }
+
+    private void PrejmenujSklad()
+    {
+        if (VybranySklad is null) return;
+        var dlg = new RenameWindow(VybranySklad.Nazev) { Owner = Application.Current?.MainWindow };
+        if (dlg.ShowDialog() != true) return;
+        VybranySklad.Nazev = dlg.NewName;
+        DatabaseService.SaveSklad(VybranySklad);
+        Nacti();
     }
 
     private static string? Get(Dictionary<string, string> n, string klic)

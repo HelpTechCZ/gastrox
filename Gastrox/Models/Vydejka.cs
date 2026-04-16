@@ -27,6 +27,12 @@ public class Vydejka
     public TypVydeje TypVydeje { get; set; } = TypVydeje.Prodej;
     public string? Poznamka { get; set; }
 
+    /// <summary>Zdrojový sklad pro tuto výdejku.</summary>
+    public int SkladId { get; set; }
+
+    /// <summary>Zobrazovací název skladu (join).</summary>
+    public string SkladNazev { get; set; } = string.Empty;
+
     public List<VydejkaRadek> Radky { get; set; } = new();
 
     // ---- formátované vlastnosti pro UI ----

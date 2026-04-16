@@ -1,4 +1,5 @@
 using System;
+using System.Windows;
 using System.Windows.Controls;
 using Gastrox.ViewModels;
 
@@ -13,5 +14,11 @@ public partial class UzaverkaView : UserControl
         InitializeComponent();
         if (DataContext is UzaverkaViewModel vm)
             vm.Hotovo += () => Hotovo?.Invoke();
+    }
+
+    private void VymazatFiltr_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is UzaverkaViewModel vm)
+            vm.VybranySklad = null;
     }
 }

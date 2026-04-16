@@ -69,6 +69,20 @@ public class SkladViewModel : ViewModelBase
         }
     }
 
+    // ---------- Sklady (výběr aktivního skladu) ----------
+    public ObservableCollection<Sklad> Sklady { get; } = new();
+
+    private Sklad? _vybranySklad;
+    public Sklad? VybranySklad
+    {
+        get => _vybranySklad;
+        set
+        {
+            if (SetProperty(ref _vybranySklad, value) && value is not null)
+                NacistSeznam();
+        }
+    }
+
     // ---------- Číselníky pro drop-downy ----------
     public ObservableCollection<Kategorie> Kategorie { get; } = new();
 
@@ -189,6 +203,12 @@ public class SkladViewModel : ViewModelBase
         foreach (var k in DatabaseService.LoadAktivniKategorie())
             Kategorie.Add(k);
 
+        Sklady.Clear();
+        foreach (var s in DatabaseService.LoadSklady())
+            Sklady.Add(s);
+        _vybranySklad = Sklady.FirstOrDefault(s => s.JeVychozi) ?? Sklady.FirstOrDefault();
+        OnPropertyChanged(nameof(VybranySklad));
+
         // Defaultně předvybrat výchozí sazbu a první kategorii
         VybranaSazba = DostupneSazby.FirstOrDefault(s => s.JeVychozi) ?? DostupneSazby.FirstOrDefault();
         if (string.IsNullOrEmpty(_kategorie) || Kategorie.All(k => k.Nazev != _kategorie))
@@ -198,7 +218,10 @@ public class SkladViewModel : ViewModelBase
     private void NacistSeznam()
     {
         Karty.Clear();
-        foreach (var k in DatabaseService.LoadAktivniKarty())
+        var list = _vybranySklad is null
+            ? DatabaseService.LoadAktivniKarty()
+            : DatabaseService.LoadAktivniKartyProSklad(_vybranySklad.Id);
+        foreach (var k in list)
             Karty.Add(k);
     }
 

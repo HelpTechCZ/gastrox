@@ -14,7 +14,24 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Pohyby" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,16"/>
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Pohyby" FontSize="24" FontWeight="SemiBold"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Sklad:" Margin="0,0,8,0" VerticalAlignment="Center" Foreground="#666"/>
+                <ComboBox ItemsSource="{Binding Sklady}"
+                          SelectedItem="{Binding VybranySklad}"
+                          DisplayMemberPath="Nazev"
+                          MinWidth="180" Padding="8,6"
+                          ToolTip="Prázdný výběr = všechny sklady"/>
+                <Button Content="✕" Margin="4,0,0,0" Padding="8,4"
+                        ToolTip="Zrušit filtr skladu"
+                        Click="VymazatFiltr_Click"/>
+            </StackPanel>
+        </Grid>
 
         <TabControl Grid.Row="1" BorderThickness="0" Background="Transparent" Padding="0">
 
@@ -67,6 +84,8 @@
                                 <DataGridTextColumn Header="Dodavatel" Binding="{Binding Dodavatel}" Width="*"
                                                     ElementStyle="{StaticResource CellText}"/>
                                 <DataGridTextColumn Header="Č. faktury" Binding="{Binding CisloFaktury}" Width="120"
+                                                    ElementStyle="{StaticResource CellText}"/>
+                                <DataGridTextColumn Header="Sklad" Binding="{Binding SkladNazev}" Width="120"
                                                     ElementStyle="{StaticResource CellText}"/>
                                 <DataGridTextColumn Header="Celkem bez DPH" Binding="{Binding CelkemBezDPH, StringFormat=N2}" Width="130"
                                                     ElementStyle="{StaticResource NumericCell}"/>
@@ -179,6 +198,8 @@
                                                     ElementStyle="{StaticResource CellText}"/>
                                 <DataGridTextColumn Header="Typ výdeje" Binding="{Binding TypVydejeLabel}" Width="160"
                                                     ElementStyle="{StaticResource CellText}"/>
+                                <DataGridTextColumn Header="Sklad" Binding="{Binding SkladNazev}" Width="120"
+                                                    ElementStyle="{StaticResource CellText}"/>
                                 <DataGridTextColumn Header="Poznámka" Binding="{Binding Poznamka}" Width="*"
                                                     ElementStyle="{StaticResource CellText}"/>
                             </DataGrid.Columns>
@@ -229,6 +250,51 @@
                                                     ElementStyle="{StaticResource NumericCell}"/>
                                 <DataGridTextColumn Header="Nákup. cena" Binding="{Binding NakupniCenaBezDPH, StringFormat=N2}" Width="110"
                                                     ElementStyle="{StaticResource NumericCell}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ========== PŘEVODKY ========== -->
+            <TabItem Header="🔀 Převody" Padding="12,6">
+                <Grid Margin="0,12,0,0">
+                    <Border Background="White" CornerRadius="8" Padding="0">
+                        <DataGrid ItemsSource="{Binding Prevodky}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  GridLinesVisibility="Horizontal"
+                                  HeadersVisibility="Column"
+                                  BorderThickness="0"
+                                  RowHeight="32"
+                                  ColumnHeaderHeight="40"
+                                  AlternatingRowBackground="#FAFAFA">
+                            <DataGrid.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                    <Setter Property="Padding" Value="6,0"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                </Style>
+                            </DataGrid.CellStyle>
+                            <DataGrid.Resources>
+                                <Style x:Key="CellText" TargetType="TextBlock">
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="TextAlignment" Value="Left"/>
+                                    <Setter Property="Margin" Value="2,0,0,0"/>
+                                </Style>
+                            </DataGrid.Resources>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Číslo dokladu" Binding="{Binding CisloDokladu}" Width="140"
+                                                    ElementStyle="{StaticResource CellText}"/>
+                                <DataGridTextColumn Header="Datum" Binding="{Binding DatumPrevodu, StringFormat=\{0:dd.MM.yyyy\}}" Width="100"
+                                                    ElementStyle="{StaticResource CellText}"/>
+                                <DataGridTextColumn Header="Ze skladu" Binding="{Binding SkladZdrojNazev}" Width="160"
+                                                    ElementStyle="{StaticResource CellText}"/>
+                                <DataGridTextColumn Header="Do skladu" Binding="{Binding SkladCilNazev}" Width="160"
+                                                    ElementStyle="{StaticResource CellText}"/>
+                                <DataGridTextColumn Header="Poznámka" Binding="{Binding Poznamka}" Width="*"
+                                                    ElementStyle="{StaticResource CellText}"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Border>

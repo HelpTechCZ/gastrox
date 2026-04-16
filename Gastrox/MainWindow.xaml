@@ -52,6 +52,8 @@
 
                 <StackPanel DockPanel.Dock="Bottom">
                     <Button Content="⚙ Nastavení" Style="{StaticResource MenuButton}" Click="Nastaveni_Click"/>
+                    <TextBlock x:Name="TxtVerze" Foreground="#888" FontSize="11" Margin="14,10,14,0"/>
+                    <TextBlock x:Name="TxtLicence" Foreground="#888" FontSize="11" Margin="14,2,14,8"/>
                 </StackPanel>
 
                 <StackPanel>
@@ -59,6 +61,7 @@
                     <Button Content="📦 Sklad"       Style="{StaticResource MenuButton}" Click="Sklad_Click"/>
                     <Button Content="📥 Naskladnit"  Style="{StaticResource MenuButton}" Click="Naskladnit_Click"/>
                     <Button Content="📤 Vyskladnit"  Style="{StaticResource MenuButton}" Click="Vyskladnit_Click"/>
+                    <Button Content="🔀 Převody"     Style="{StaticResource MenuButton}" Click="Prevody_Click"/>
                     <Button Content="📋 Uzávěrka"    Style="{StaticResource MenuButton}" Click="Uzaverka_Click"/>
                     <Button Content="📊 Pohyby"      Style="{StaticResource MenuButton}" Click="Pohyby_Click"/>
                 </StackPanel>

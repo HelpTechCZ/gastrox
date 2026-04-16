@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using Gastrox.Models;
 using Gastrox.Services;
 
@@ -6,6 +7,16 @@ namespace Gastrox.ViewModels;
 
 public class PohybyViewModel : ViewModelBase
 {
+    // ---- Filtr skladu ----
+    public ObservableCollection<Sklad> Sklady { get; } = new();
+
+    private Sklad? _vybranySklad;
+    public Sklad? VybranySklad
+    {
+        get => _vybranySklad;
+        set { if (SetProperty(ref _vybranySklad, value)) Refresh(); }
+    }
+
     // ---- Příjemky ----
 
     public ObservableCollection<Prijemka> Prijemky { get; } = new();
@@ -58,21 +69,41 @@ public class PohybyViewModel : ViewModelBase
     public ObservableCollection<VydejkaRadek> VydejkaRadky { get; } = new();
     public bool MaVydejkaRadky => VydejkaRadky.Count > 0;
 
+    // ---- Převodky ----
+
+    public ObservableCollection<Prevodka> Prevodky { get; } = new();
+
     // ---- Init ----
 
     public PohybyViewModel()
     {
+        // Do filtru vložíme jako první položku "všechny sklady" = null id (nereprezentováno v Sklad modelu)
+        // Zde necháváme VybranySklad = null jako "všechny".
+        Sklady.Clear();
+        foreach (var s in DatabaseService.LoadSklady())
+            Sklady.Add(s);
+
         Refresh();
     }
 
     public void Refresh()
     {
+        int? sid = _vybranySklad?.Id;
+
         Prijemky.Clear();
-        foreach (var p in DatabaseService.LoadPrijemky())
+        foreach (var p in DatabaseService.LoadPrijemky(skladId: sid))
             Prijemky.Add(p);
 
         Vydejky.Clear();
-        foreach (var v in DatabaseService.LoadVydejky())
+        foreach (var v in DatabaseService.LoadVydejky(skladId: sid))
             Vydejky.Add(v);
+
+        Prevodky.Clear();
+        var vsechny = DatabaseService.LoadPrevodky();
+        var filtr = sid is null
+            ? vsechny
+            : vsechny.Where(p => p.SkladZdrojId == sid || p.SkladCilId == sid).ToList();
+        foreach (var p in filtr)
+            Prevodky.Add(p);
     }
 }

@@ -55,6 +55,12 @@
                         </StackPanel>
                     </Grid>
 
+                    <TextBlock Text="Cílový sklad"/>
+                    <ComboBox ItemsSource="{Binding Sklady}"
+                              SelectedItem="{Binding VybranySklad}"
+                              DisplayMemberPath="Nazev"
+                              Margin="0,4,0,12" Padding="8,6"/>
+
                     <TextBlock Text="Dodavatel"/>
                     <TextBox Text="{Binding Dodavatel, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,12" Padding="8,6"/>
 
@@ -224,6 +230,10 @@
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                         <TextBlock Text="Dodavatel: " FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding Dodavatel}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <TextBlock Text="Sklad: " FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding VybranySklad.Nazev}"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                         <TextBlock Text="Položek: " FontWeight="SemiBold"/>
