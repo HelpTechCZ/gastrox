@@ -10,6 +10,13 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.13.0] — 2026-04-16
+
+### Přidáno
+- **Graf vývoje nákupních cen na skladové kartě** — v detailu karty se pod sekcí marže vykresluje historie všech nákupů z evidovaných příjemek. Cena se přepočítává na evidenční jednotku (Kč/l, Kč/ks…), takže trend zůstává čitelný i když se mění varianta balení (sud 50l vs. sud 30l atd.). Graf je čistý WPF Canvas bez externí knihovny – aplikace zůstává portable jako jeden .exe. Každý bod má tooltip s přesným datem, cenou a typem balení.
+
+---
+
 ## [0.12.5] — 2026-04-16
 
 ### Opraveno

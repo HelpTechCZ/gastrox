@@ -47,6 +47,11 @@ public class SkladViewModel : ViewModelBase
 
     public bool MaPohyby => Pohyby.Count > 0;
 
+    /// <summary>Body grafu vývoje nákupních cen (Kč za evidenční jednotku).</summary>
+    public ObservableCollection<CenovyBod> HistorieCen { get; } = new();
+
+    public bool MaHistoriiCen => HistorieCen.Count > 0;
+
     private SkladovaKarta? _vybranaKarta;
     public SkladovaKarta? VybranaKarta
     {
@@ -59,11 +64,14 @@ public class SkladViewModel : ViewModelBase
                 {
                     NacistDoFormulare(value);
                     NacistPohyby(value.Id);
+                    NacistHistoriiCen(value.Id);
                 }
                 else
                 {
                     Pohyby.Clear();
                     OnPropertyChanged(nameof(MaPohyby));
+                    HistorieCen.Clear();
+                    OnPropertyChanged(nameof(MaHistoriiCen));
                 }
             }
         }
@@ -305,6 +313,14 @@ public class SkladViewModel : ViewModelBase
         foreach (var p in DatabaseService.LoadPohybyKarty(kartaId))
             Pohyby.Add(p);
         OnPropertyChanged(nameof(MaPohyby));
+    }
+
+    private void NacistHistoriiCen(int kartaId)
+    {
+        HistorieCen.Clear();
+        foreach (var b in DatabaseService.LoadHistorieNakupnichCen(kartaId))
+            HistorieCen.Add(b);
+        OnPropertyChanged(nameof(MaHistoriiCen));
     }
 
     private void NacistDoFormulare(SkladovaKarta k)

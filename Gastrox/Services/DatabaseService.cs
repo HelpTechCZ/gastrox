@@ -998,6 +998,51 @@ public static class DatabaseService
     }
 
     // ----------------------------------------------------------------
+    // Historie nákupních cen karty (pro graf vývoje)
+    // ----------------------------------------------------------------
+    /// <summary>
+    /// Chronologický seznam nákupů karty z evidovaných příjemek.
+    /// Cena se vrací přepočtená na evidenční jednotku (Kč/l, Kč/ks…) –
+    /// aby byly body srovnatelné napříč různými variantami balení.
+    /// </summary>
+    public static List<CenovyBod> LoadHistorieNakupnichCen(int kartaId, int limit = 200)
+    {
+        var list = new List<CenovyBod>();
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT p.Datum_Prijeti,
+                   pr.Nakupni_Cena_Bez_DPH,
+                   pr.Koeficient_Prepoctu,
+                   COALESCE(sk.Typ_Baleni, '') AS TypBaleni
+              FROM PrijemkaRadek pr
+              JOIN Prijemka p       ON p.Id  = pr.Prijemka_Id
+              JOIN SkladovaKarta sk ON sk.Id = pr.SkladovaKarta_Id
+             WHERE pr.SkladovaKarta_Id = $kid
+             ORDER BY p.Datum_Prijeti ASC, pr.Id ASC
+             LIMIT $lim";
+        cmd.Parameters.AddWithValue("$kid", kartaId);
+        cmd.Parameters.AddWithValue("$lim", limit);
+
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            var cenaBaleni = (decimal)reader.GetDouble(1);
+            var koef       = (decimal)reader.GetDouble(2);
+            if (koef <= 0) continue; // ochrana proti dělení nulou u legacy dat
+
+            list.Add(new CenovyBod
+            {
+                Datum                 = DateTime.Parse(reader.GetString(0)),
+                CenaZaJednotkuBezDPH  = cenaBaleni / koef,
+                TypBaleni             = reader.GetString(3)
+            });
+        }
+        return list;
+    }
+
+    // ----------------------------------------------------------------
     // Výdejky – seznam hlaviček
     // ----------------------------------------------------------------
     public static List<Vydejka> LoadVydejky(int limit = 500, int? skladId = null)

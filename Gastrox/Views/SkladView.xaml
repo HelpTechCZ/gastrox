@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:Gastrox.ViewModels"
+             xmlns:views="clr-namespace:Gastrox.Views"
              xmlns:dgp="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
              FontFamily="Segoe UI" FontSize="13"
              Background="#F3F3F3">
@@ -321,6 +322,20 @@
                                 <TextBlock Text=" %)"/>
                             </StackPanel>
                         </Border>
+
+                        <!-- Graf vývoje nákupních cen (Kč za evidenční jednotku napříč příjemkami) -->
+                        <StackPanel Margin="0,4,0,12">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="Vývoj nákupní ceny" FontWeight="SemiBold"/>
+                                <TextBlock Foreground="#888" FontSize="11" VerticalAlignment="Center"
+                                           Margin="8,0,0,0"
+                                           Text="{Binding EvidencniJednotka_Sel, StringFormat='(Kč/{0})'}"/>
+                            </StackPanel>
+                            <Border Background="#FAFBFC" BorderBrush="#E1E5EA" BorderThickness="1"
+                                    CornerRadius="6" Padding="4">
+                                <views:CenovyGraf Body="{Binding HistorieCen}" Height="140"/>
+                            </Border>
+                        </StackPanel>
 
                         <Border BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Margin="0,6,0,12"/>
 
