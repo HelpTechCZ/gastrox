@@ -10,6 +10,13 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.10.1] — 2026-04-16
+
+### Opraveno
+- **Chyba „no such table: Prevodka"** při otevření Pohybů/Převodů na existujících databázích povýšených z 0.9.x. Migrace nyní explicitně vytváří tabulky `Prevodka`, `PrevodkaRadek`, `Sklad`, `SkladovyStav` i indexy, nespoléhá jen na `init.sql` embedded resource.
+
+---
+
 ## [0.10.0] — 2026-04-16
 
 ### Přidáno

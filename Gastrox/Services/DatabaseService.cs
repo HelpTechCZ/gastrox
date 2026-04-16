@@ -71,6 +71,65 @@ public static class DatabaseService
         AddColumnIfMissing("UzaverkaRadek", "Sklad_Id", $"INTEGER NOT NULL DEFAULT {defaultSkladId}");
         AddColumnIfMissing("Uzaverka",      "Sklad_Id", "INTEGER");
         AddColumnIfMissing("PohybSkladu",   "Sklad_Id", $"INTEGER NOT NULL DEFAULT {defaultSkladId}");
+
+        // Pojistka pro starší DB: pokud init.sql z nějakého důvodu neaplikoval
+        // nové tabulky pro převody mezi sklady, vytvoříme je explicitně zde.
+        using (var ct = conn.CreateCommand())
+        {
+            ct.CommandText = @"
+                CREATE TABLE IF NOT EXISTS Prevodka (
+                    Id                INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Cislo_Dokladu     TEXT    NOT NULL UNIQUE,
+                    Datum_Prevodu     TEXT    NOT NULL,
+                    Sklad_Zdroj_Id    INTEGER NOT NULL,
+                    Sklad_Cil_Id      INTEGER NOT NULL,
+                    Poznamka          TEXT,
+                    Vytvoreno         TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (Sklad_Zdroj_Id) REFERENCES Sklad(Id) ON DELETE RESTRICT,
+                    FOREIGN KEY (Sklad_Cil_Id)   REFERENCES Sklad(Id) ON DELETE RESTRICT
+                );
+                CREATE TABLE IF NOT EXISTS PrevodkaRadek (
+                    Id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Prevodka_Id           INTEGER NOT NULL,
+                    SkladovaKarta_Id      INTEGER NOT NULL,
+                    Mnozstvi_Evidencni    REAL    NOT NULL,
+                    FOREIGN KEY (Prevodka_Id)      REFERENCES Prevodka(Id)      ON DELETE CASCADE,
+                    FOREIGN KEY (SkladovaKarta_Id) REFERENCES SkladovaKarta(Id) ON DELETE RESTRICT
+                );
+                CREATE INDEX IF NOT EXISTS IX_PrevodkaRadek_Prevodka ON PrevodkaRadek(Prevodka_Id);
+                CREATE INDEX IF NOT EXISTS IX_Prevodka_Datum         ON Prevodka(Datum_Prevodu);
+
+                CREATE TABLE IF NOT EXISTS Sklad (
+                    Id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Nazev       TEXT    NOT NULL UNIQUE,
+                    Je_Vychozi  INTEGER NOT NULL DEFAULT 0,
+                    Je_Aktivni  INTEGER NOT NULL DEFAULT 1,
+                    Poradi      INTEGER NOT NULL DEFAULT 0
+                );
+                INSERT INTO Sklad (Nazev, Je_Vychozi, Je_Aktivni, Poradi)
+                SELECT 'Hlavní sklad', 1, 1, 10
+                WHERE NOT EXISTS (SELECT 1 FROM Sklad);
+
+                CREATE TABLE IF NOT EXISTS SkladovyStav (
+                    SkladovaKarta_Id  INTEGER NOT NULL,
+                    Sklad_Id          INTEGER NOT NULL,
+                    Stav_Evidencni    REAL    NOT NULL DEFAULT 0,
+                    PRIMARY KEY (SkladovaKarta_Id, Sklad_Id),
+                    FOREIGN KEY (SkladovaKarta_Id) REFERENCES SkladovaKarta(Id) ON DELETE CASCADE,
+                    FOREIGN KEY (Sklad_Id)         REFERENCES Sklad(Id)         ON DELETE RESTRICT
+                );
+                CREATE INDEX IF NOT EXISTS IX_SkladovyStav_Sklad ON SkladovyStav(Sklad_Id);
+
+                -- Pro karty bez záznamu v SkladovyStav přenést aktuální stav do výchozího skladu
+                INSERT OR IGNORE INTO SkladovyStav (SkladovaKarta_Id, Sklad_Id, Stav_Evidencni)
+                SELECT k.Id, s.Id, k.Aktualni_Stav_Evidencni
+                  FROM SkladovaKarta k
+                  CROSS JOIN (SELECT Id FROM Sklad WHERE Je_Vychozi = 1 LIMIT 1) s
+                 WHERE NOT EXISTS (
+                     SELECT 1 FROM SkladovyStav ss WHERE ss.SkladovaKarta_Id = k.Id
+                 );";
+            ct.ExecuteNonQuery();
+        }
     }
 
     private static string LoadInitScript()
