@@ -135,14 +135,28 @@ public class VydejkaWizardViewModel : ViewModelBase
             TypVydeje    = TypVydeje,
             Poznamka     = Poznamka,
             SkladId      = VybranySklad?.Id ?? 0,
+            SkladNazev   = VybranySklad?.Nazev ?? string.Empty,
             Radky        = Radky.Select(r => r.ToModel()).ToList()
         };
 
         try
         {
             DatabaseService.SaveVydejka(v);
-            MessageBox.Show($"Výdejka uložena: {v.CisloDokladu}", "Hotovo",
-                MessageBoxButton.OK, MessageBoxImage.Information);
+
+            var odpoved = MessageBox.Show(
+                $"Výdejka uložena: {v.CisloDokladu}\n\nVygenerovat PDF doklad?",
+                "Hotovo", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (odpoved == MessageBoxResult.Yes)
+            {
+                try { PdfService.GenerujVydejkuPdf(v, v.Radky); }
+                catch (Exception pdfEx)
+                {
+                    MessageBox.Show("Chyba při generování PDF:\n" + pdfEx.Message, "Chyba",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+
             Hotovo?.Invoke();
         }
         catch (Exception ex)

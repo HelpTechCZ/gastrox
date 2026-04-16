@@ -42,6 +42,7 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="200"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- Seznam příjemek -->
@@ -150,6 +151,15 @@
                             </DataGrid.Columns>
                         </DataGrid>
                     </Border>
+
+                    <!-- Tisk PDF -->
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="📄 Tisk PDF" Padding="18,8"
+                                Command="{Binding TisknoutPrijemkuCommand}"
+                                Background="#0078D4" Foreground="White"
+                                BorderThickness="0" FontWeight="SemiBold" Cursor="Hand"
+                                ToolTip="Vygenerovat PDF pro vybranou příjemku"/>
+                    </StackPanel>
                 </Grid>
             </TabItem>
 
@@ -160,6 +170,7 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="200"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- Seznam výdejek -->
@@ -253,14 +264,28 @@
                             </DataGrid.Columns>
                         </DataGrid>
                     </Border>
+
+                    <!-- Tisk PDF -->
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="📄 Tisk PDF" Padding="18,8"
+                                Command="{Binding TisknoutVydejkuCommand}"
+                                Background="#0078D4" Foreground="White"
+                                BorderThickness="0" FontWeight="SemiBold" Cursor="Hand"
+                                ToolTip="Vygenerovat PDF pro vybranou výdejku"/>
+                    </StackPanel>
                 </Grid>
             </TabItem>
 
             <!-- ========== PŘEVODKY ========== -->
             <TabItem Header="🔀 Převody" Padding="12,6">
                 <Grid Margin="0,12,0,0">
-                    <Border Background="White" CornerRadius="8" Padding="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="0">
                         <DataGrid ItemsSource="{Binding Prevodky}"
+                                  SelectedItem="{Binding VybranaPrevodka}"
                                   AutoGenerateColumns="False"
                                   IsReadOnly="True"
                                   GridLinesVisibility="Horizontal"
@@ -298,6 +323,15 @@
                             </DataGrid.Columns>
                         </DataGrid>
                     </Border>
+
+                    <!-- Tisk PDF -->
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="📄 Tisk PDF" Padding="18,8"
+                                Command="{Binding TisknoutPrevodkuCommand}"
+                                Background="#0078D4" Foreground="White"
+                                BorderThickness="0" FontWeight="SemiBold" Cursor="Hand"
+                                ToolTip="Vygenerovat PDF pro vybranou převodku"/>
+                    </StackPanel>
                 </Grid>
             </TabItem>
 

@@ -45,7 +45,9 @@ public class PrevodRadekViewModel : ViewModelBase
         return new PrevodkaRadek
         {
             SkladovaKartaId   = _vybraneZbozi?.Id ?? 0,
-            MnozstviEvidencni = MnozstviEvidencni
+            MnozstviEvidencni = MnozstviEvidencni,
+            NazevKarty        = _vybraneZbozi?.Nazev ?? string.Empty,
+            EvidencniJednotka = _vybraneZbozi?.EvidencniJednotka ?? string.Empty
         };
     }
 }

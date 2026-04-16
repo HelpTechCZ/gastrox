@@ -10,6 +10,22 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.11.0] — 2026-04-16
+
+### Přidáno
+- **Tisk PDF dokladů** pro příjemky, výdejky i převodky:
+  - **Po dokončení wizardu** (Naskladnit / Vyskladnit / Převod) se zobrazí dotaz „Vygenerovat PDF doklad?". Při potvrzení se vygeneruje PDF a otevře ve výchozí aplikaci.
+  - **Z pohledu Pohyby** — nové tlačítko **📄 Tisk PDF** na všech třech záložkách (Příjemky, Výdejky, Převody) generuje PDF pro vybraný doklad.
+  - PDF obsahují firemní hlavičku (z Nastavení → Firma), položky s množstvími a u příjemek/výdejek i ceny (v DEMO režimu bez licence se místo cen zobrazuje text **DEMO**).
+  - Převodka má navíc podpisová pole „Vydal" / „Přijal" a vizualizaci směru převodu mezi sklady.
+  - Soubory se ukládají do složky `Doklady/` vedle `.exe` (portable).
+
+### Upraveno
+- `PrevodRadekViewModel.ToModel()` nyní vyplňuje i `NazevKarty` a `EvidencniJednotka`, aby byl model použitelný pro tisk bez dalšího dotazu do DB.
+- Wizardy (Naskladnit/Vyskladnit/Převod) nyní ukládají i `SkladNazev` / `SkladZdrojNazev` / `SkladCilNazev` do modelu dokladu (pro čitelné PDF bez join na `Sklad`).
+
+---
+
 ## [0.10.1] — 2026-04-16
 
 ### Opraveno

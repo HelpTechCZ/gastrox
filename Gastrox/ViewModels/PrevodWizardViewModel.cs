@@ -137,19 +137,34 @@ public class PrevodWizardViewModel : ViewModelBase
 
         var p = new Prevodka
         {
-            CisloDokladu = CisloDokladu,
-            DatumPrevodu = DatumPrevodu,
-            SkladZdrojId = SkladZdroj.Id,
-            SkladCilId   = SkladCil.Id,
-            Poznamka     = Poznamka,
-            Radky        = Radky.Select(r => r.ToModel()).ToList()
+            CisloDokladu    = CisloDokladu,
+            DatumPrevodu    = DatumPrevodu,
+            SkladZdrojId    = SkladZdroj.Id,
+            SkladZdrojNazev = SkladZdroj.Nazev,
+            SkladCilId      = SkladCil.Id,
+            SkladCilNazev   = SkladCil.Nazev,
+            Poznamka        = Poznamka,
+            Radky           = Radky.Select(r => r.ToModel()).ToList()
         };
 
         try
         {
             DatabaseService.SavePrevodka(p);
-            MessageBox.Show($"Převodka uložena: {p.CisloDokladu}", "Hotovo",
-                MessageBoxButton.OK, MessageBoxImage.Information);
+
+            var odpoved = MessageBox.Show(
+                $"Převodka uložena: {p.CisloDokladu}\n\nVygenerovat PDF doklad?",
+                "Hotovo", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (odpoved == MessageBoxResult.Yes)
+            {
+                try { PdfService.GenerujPrevodkuPdf(p, p.Radky); }
+                catch (Exception pdfEx)
+                {
+                    MessageBox.Show("Chyba při generování PDF:\n" + pdfEx.Message, "Chyba",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+
             Hotovo?.Invoke();
         }
         catch (Exception ex)

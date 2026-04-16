@@ -1268,6 +1268,36 @@ public static class DatabaseService
         return list;
     }
 
+    public static List<PrevodkaRadek> LoadPrevodkaRadky(int prevodkaId)
+    {
+        var list = new List<PrevodkaRadek>();
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT pr.Id, pr.Prevodka_Id, pr.SkladovaKarta_Id, pr.Mnozstvi_Evidencni,
+                   sk.Nazev, sk.Evidencni_Jednotka
+              FROM PrevodkaRadek pr
+              JOIN SkladovaKarta sk ON sk.Id = pr.SkladovaKarta_Id
+             WHERE pr.Prevodka_Id = $pid
+             ORDER BY pr.Id";
+        cmd.Parameters.AddWithValue("$pid", prevodkaId);
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            list.Add(new PrevodkaRadek
+            {
+                Id                = reader.GetInt32(0),
+                PrevodkaId        = reader.GetInt32(1),
+                SkladovaKartaId   = reader.GetInt32(2),
+                MnozstviEvidencni = (decimal)reader.GetDouble(3),
+                NazevKarty        = reader.GetString(4),
+                EvidencniJednotka = reader.GetString(5)
+            });
+        }
+        return list;
+    }
+
     /// <summary>Vygeneruje další číslo převodky ve formátu PR-YYYY-0001.</summary>
     public static string GenerujCisloPrevodky()
     {

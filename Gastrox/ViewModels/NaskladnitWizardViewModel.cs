@@ -145,6 +145,7 @@ public class NaskladnitWizardViewModel : ViewModelBase
             CisloFaktury = CisloFaktury,
             Poznamka     = Poznamka,
             SkladId      = VybranySklad?.Id ?? 0,
+            SkladNazev   = VybranySklad?.Nazev ?? string.Empty,
             CelkemBezDPH = CelkemBezDPH,
             CelkemSDPH   = CelkemSDPH,
             Radky        = Radky.Select(r => r.ToModel()).ToList()
@@ -153,8 +154,21 @@ public class NaskladnitWizardViewModel : ViewModelBase
         try
         {
             DatabaseService.SavePrijemka(p);
-            MessageBox.Show($"Příjemka uložena: {p.CisloDokladu}", "Hotovo",
-                MessageBoxButton.OK, MessageBoxImage.Information);
+
+            var odpoved = MessageBox.Show(
+                $"Příjemka uložena: {p.CisloDokladu}\n\nVygenerovat PDF doklad?",
+                "Hotovo", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (odpoved == MessageBoxResult.Yes)
+            {
+                try { PdfService.GenerujPrijemkuPdf(p, p.Radky); }
+                catch (Exception pdfEx)
+                {
+                    MessageBox.Show("Chyba při generování PDF:\n" + pdfEx.Message, "Chyba",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+
             Hotovo?.Invoke();
         }
         catch (Exception ex)
