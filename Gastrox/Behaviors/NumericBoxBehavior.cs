@@ -68,10 +68,11 @@ public static class NumericBoxBehavior
     private static void OnPreviewTextInput(object sender, TextCompositionEventArgs e)
     {
         if (sender is not TextBox tb) return;
-        if (e.Text != ".") return;
+        // Přijímáme oba oddělovače – substitujeme na kulturní, ať binding umí parsovat.
+        if (e.Text != "." && e.Text != ",") return;
 
         var sep = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
-        if (sep == ".") return; // kultura už tečku bere, není co řešit
+        if (e.Text == sep) return; // už je to ten správný znak, nic nedělat
 
         var start = tb.SelectionStart;
         var len   = tb.SelectionLength;

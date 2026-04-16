@@ -1,7 +1,9 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Windows;
+using System.Windows.Markup;
 
 namespace Gastrox;
 
@@ -33,6 +35,15 @@ public static class Program
 
         try
         {
+            // WPF bindingy ve výchozím nastavení používají en-US (Language FrameworkElementu),
+            // takže StringFormat=N2 by vypisoval „0.00" i na českých Windows. Přepíšeme
+            // Language na CurrentCulture → StringFormat respektuje cs-CZ oddělovače („0,00").
+            FrameworkElement.LanguageProperty.OverrideMetadata(
+                typeof(FrameworkElement),
+                new FrameworkPropertyMetadata(
+                    XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
+            Log($"WPF Language přepsána na {CultureInfo.CurrentCulture.IetfLanguageTag}");
+
             Log("Vytvářím App instanci...");
             var app = new App();
 

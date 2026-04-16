@@ -10,6 +10,14 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.12.3] — 2026-04-16
+
+### Opraveno
+- **WPF bindingy teď používají české oddělovače** — WPF ve výchozím stavu ignoruje `CurrentCulture` a pro `StringFormat=N2` vždy bere `en-US` („0.00"). Důsledkem bylo, že desetinná čárka šla zadat do TextBoxu, ale binding ji odmítl parsovat. `Program.Main` teď přepisuje `FrameworkElement.Language` na `CurrentCulture`, takže `N2` vypíše „0,00" a čárka se správně uloží.
+- `NumericBoxBehavior` teď **substitutuje jak „." tak „,"** na kulturní oddělovač — uživatel může psát cokoli, behavior vždy doručí do bindingu formát, který parsing bere.
+
+---
+
 ## [0.12.2] — 2026-04-16
 
 ### Přidáno
