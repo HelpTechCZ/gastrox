@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using Gastrox.Models;
+using Gastrox.Services;
 
 namespace Gastrox.ViewModels;
 
@@ -15,6 +16,7 @@ public class PrijemkaRadekViewModel : ViewModelBase
     private decimal _pocetBaleni;
     private decimal _nakupniCenaBezDPH;
     private SazbaDPH? _vybranaSazba;
+    private BaleniKarty? _vybraneBaleni;
 
     public PrijemkaRadekViewModel(ObservableCollection<SazbaDPH> dostupneSazby)
     {
@@ -24,6 +26,9 @@ public class PrijemkaRadekViewModel : ViewModelBase
 
     public ObservableCollection<SazbaDPH> DostupneSazby { get; }
 
+    /// <summary>Varianty balení pro aktuálně vybrané zboží (Sud 50l, Sud 30l, Láhev 0,7l…).</summary>
+    public ObservableCollection<BaleniKarty> DostupnaBaleni { get; } = new();
+
     public SkladovaKarta? VybraneZbozi
     {
         get => _vybraneZbozi;
@@ -31,16 +36,53 @@ public class PrijemkaRadekViewModel : ViewModelBase
         {
             if (SetProperty(ref _vybraneZbozi, value) && value is not null)
             {
-                NakupniCenaBezDPH = value.NakupniCenaBezDPH;
+                // Načíst varianty balení pro tuto kartu
+                DostupnaBaleni.Clear();
+                var varianty = DatabaseService.LoadBaleniProKartu(value.Id);
+                if (varianty.Count == 0)
+                {
+                    // Legacy karta bez variant – dopočítat z polí karty
+                    varianty.Add(new BaleniKarty
+                    {
+                        SkladovaKartaId   = value.Id,
+                        Nazev             = string.IsNullOrWhiteSpace(value.TypBaleni) ? "Výchozí" : value.TypBaleni,
+                        KoeficientPrepoctu = value.KoeficientPrepoctu <= 0 ? 1m : value.KoeficientPrepoctu,
+                        NakupniCenaBezDPH = value.NakupniCenaBezDPH,
+                        JeVychozi         = true
+                    });
+                }
+                foreach (var b in varianty)
+                    DostupnaBaleni.Add(b);
+
+                // Výchozí balení nebo první
+                VybraneBaleni = DostupnaBaleni.FirstOrDefault(b => b.JeVychozi) ?? DostupnaBaleni.FirstOrDefault();
+
                 // Předvyplnit sazbu z karty (najít odpovídající z dostupných)
                 var match = DostupneSazby.FirstOrDefault(s => s.Sazba == value.SazbaDPH);
                 if (match is not null) VybranaSazba = match;
 
-                OnPropertyChanged(nameof(TypBaleni));
                 OnPropertyChanged(nameof(EvidencniJednotka));
+                OnPropertyChanged(nameof(MnozstviEvidencni));
+                OnPropertyChanged(nameof(ZobrazeniPrepoctu));
+            }
+        }
+    }
+
+    /// <summary>Aktuálně vybraná varianta balení této karty (pro tuto položku příjemky).</summary>
+    public BaleniKarty? VybraneBaleni
+    {
+        get => _vybraneBaleni;
+        set
+        {
+            if (SetProperty(ref _vybraneBaleni, value) && value is not null)
+            {
+                NakupniCenaBezDPH = value.NakupniCenaBezDPH;
+                OnPropertyChanged(nameof(TypBaleni));
                 OnPropertyChanged(nameof(KoeficientPrepoctu));
                 OnPropertyChanged(nameof(MnozstviEvidencni));
                 OnPropertyChanged(nameof(ZobrazeniPrepoctu));
+                OnPropertyChanged(nameof(CelkemBezDPH));
+                OnPropertyChanged(nameof(CelkemSDPH));
             }
         }
     }
@@ -87,9 +129,9 @@ public class PrijemkaRadekViewModel : ViewModelBase
 
     // ---- odvozené (read-only) ----
 
-    public string TypBaleni           => _vybraneZbozi?.TypBaleni ?? "-";
+    public string TypBaleni           => _vybraneBaleni?.Nazev ?? "-";
     public string EvidencniJednotka   => _vybraneZbozi?.EvidencniJednotka ?? "-";
-    public decimal KoeficientPrepoctu => _vybraneZbozi?.KoeficientPrepoctu ?? 0m;
+    public decimal KoeficientPrepoctu => _vybraneBaleni?.KoeficientPrepoctu ?? 0m;
 
     public decimal MnozstviEvidencni => PocetBaleni * KoeficientPrepoctu;
 

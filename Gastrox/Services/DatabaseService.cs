@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Gastrox.Models;
 using Microsoft.Data.Sqlite;
@@ -127,7 +128,29 @@ public static class DatabaseService
                   CROSS JOIN (SELECT Id FROM Sklad WHERE Je_Vychozi = 1 LIMIT 1) s
                  WHERE NOT EXISTS (
                      SELECT 1 FROM SkladovyStav ss WHERE ss.SkladovaKarta_Id = k.Id
-                 );";
+                 );
+
+                -- Varianty balení karty (Sud 50l, Sud 30l, Láhev 0,7l...)
+                CREATE TABLE IF NOT EXISTS BaleniKarty (
+                    Id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+                    SkladovaKarta_Id      INTEGER NOT NULL,
+                    Nazev                 TEXT    NOT NULL,
+                    Koeficient_Prepoctu   REAL    NOT NULL DEFAULT 1,
+                    Nakupni_Cena_Bez_DPH  REAL    NOT NULL DEFAULT 0,
+                    Je_Vychozi            INTEGER NOT NULL DEFAULT 0,
+                    Je_Aktivni            INTEGER NOT NULL DEFAULT 1,
+                    Poradi                INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY (SkladovaKarta_Id) REFERENCES SkladovaKarta(Id) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS IX_BaleniKarty_Karta ON BaleniKarty(SkladovaKarta_Id);
+
+                -- Seed výchozích variant z polí karty pro existující karty
+                INSERT INTO BaleniKarty (SkladovaKarta_Id, Nazev, Koeficient_Prepoctu, Nakupni_Cena_Bez_DPH, Je_Vychozi, Je_Aktivni, Poradi)
+                SELECT k.Id,
+                       CASE WHEN k.Typ_Baleni IS NULL OR trim(k.Typ_Baleni) = '' THEN 'Výchozí' ELSE k.Typ_Baleni END,
+                       k.Koeficient_Prepoctu, k.Nakupni_Cena_Bez_DPH, 1, 1, 10
+                  FROM SkladovaKarta k
+                 WHERE NOT EXISTS (SELECT 1 FROM BaleniKarty b WHERE b.SkladovaKarta_Id = k.Id);";
             ct.ExecuteNonQuery();
         }
     }
@@ -266,6 +289,131 @@ public static class DatabaseService
         cmd.CommandText = "UPDATE SkladovaKarta SET Je_Aktivni = 0 WHERE Id = $id";
         cmd.Parameters.AddWithValue("$id", id);
         cmd.ExecuteNonQuery();
+    }
+
+    // ----------------------------------------------------------------
+    // Varianty balení karty
+    // ----------------------------------------------------------------
+    public static List<BaleniKarty> LoadBaleniProKartu(int kartaId)
+    {
+        var list = new List<BaleniKarty>();
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT Id, SkladovaKarta_Id, Nazev, Koeficient_Prepoctu,
+                   Nakupni_Cena_Bez_DPH, Je_Vychozi, Je_Aktivni, Poradi
+              FROM BaleniKarty
+             WHERE SkladovaKarta_Id = $kid AND Je_Aktivni = 1
+             ORDER BY Je_Vychozi DESC, Poradi, Id";
+        cmd.Parameters.AddWithValue("$kid", kartaId);
+        using var r = cmd.ExecuteReader();
+        while (r.Read())
+        {
+            list.Add(new BaleniKarty
+            {
+                Id                 = r.GetInt32(0),
+                SkladovaKartaId    = r.GetInt32(1),
+                Nazev              = r.GetString(2),
+                KoeficientPrepoctu = (decimal)r.GetDouble(3),
+                NakupniCenaBezDPH  = (decimal)r.GetDouble(4),
+                JeVychozi          = r.GetInt32(5) == 1,
+                JeAktivni          = r.GetInt32(6) == 1,
+                Poradi             = r.GetInt32(7)
+            });
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// Uloží kompletní seznam variant pro danou kartu (replace-all v transakci).
+    /// Vymažou se varianty, které už v seznamu nejsou; nové (Id=0) se vloží;
+    /// existující se aktualizují. Právě jedna musí mít Je_Vychozi=1.
+    /// </summary>
+    public static void SaveBaleniProKartu(int kartaId, IEnumerable<BaleniKarty> baleni)
+    {
+        var list = new List<BaleniKarty>(baleni);
+        if (list.Count == 0)
+            throw new InvalidOperationException("Karta musí mít alespoň jednu variantu balení.");
+        if (list.Count(b => b.JeVychozi) != 1)
+            throw new InvalidOperationException("Právě jedna varianta musí být označena jako výchozí.");
+
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var tx = conn.BeginTransaction();
+
+        // Zjistit existující Id v DB
+        var existujici = new HashSet<int>();
+        using (var q = conn.CreateCommand())
+        {
+            q.Transaction = tx;
+            q.CommandText = "SELECT Id FROM BaleniKarty WHERE SkladovaKarta_Id = $kid";
+            q.Parameters.AddWithValue("$kid", kartaId);
+            using var r = q.ExecuteReader();
+            while (r.Read()) existujici.Add(r.GetInt32(0));
+        }
+
+        var zachovat = new HashSet<int>();
+        int poradi = 10;
+        foreach (var b in list)
+        {
+            if (b.Id == 0)
+            {
+                using var ins = conn.CreateCommand();
+                ins.Transaction = tx;
+                ins.CommandText = @"
+                    INSERT INTO BaleniKarty
+                        (SkladovaKarta_Id, Nazev, Koeficient_Prepoctu, Nakupni_Cena_Bez_DPH,
+                         Je_Vychozi, Je_Aktivni, Poradi)
+                    VALUES ($kid, $nazev, $kp, $nc, $vych, 1, $por);
+                    SELECT last_insert_rowid();";
+                ins.Parameters.AddWithValue("$kid",   kartaId);
+                ins.Parameters.AddWithValue("$nazev", b.Nazev);
+                ins.Parameters.AddWithValue("$kp",    (double)b.KoeficientPrepoctu);
+                ins.Parameters.AddWithValue("$nc",    (double)b.NakupniCenaBezDPH);
+                ins.Parameters.AddWithValue("$vych",  b.JeVychozi ? 1 : 0);
+                ins.Parameters.AddWithValue("$por",   poradi);
+                var newId = Convert.ToInt32(ins.ExecuteScalar());
+                b.Id = newId;
+                zachovat.Add(newId);
+            }
+            else
+            {
+                using var upd = conn.CreateCommand();
+                upd.Transaction = tx;
+                upd.CommandText = @"
+                    UPDATE BaleniKarty SET
+                        Nazev = $nazev,
+                        Koeficient_Prepoctu = $kp,
+                        Nakupni_Cena_Bez_DPH = $nc,
+                        Je_Vychozi = $vych,
+                        Poradi = $por
+                     WHERE Id = $id AND SkladovaKarta_Id = $kid";
+                upd.Parameters.AddWithValue("$id",    b.Id);
+                upd.Parameters.AddWithValue("$kid",   kartaId);
+                upd.Parameters.AddWithValue("$nazev", b.Nazev);
+                upd.Parameters.AddWithValue("$kp",    (double)b.KoeficientPrepoctu);
+                upd.Parameters.AddWithValue("$nc",    (double)b.NakupniCenaBezDPH);
+                upd.Parameters.AddWithValue("$vych",  b.JeVychozi ? 1 : 0);
+                upd.Parameters.AddWithValue("$por",   poradi);
+                upd.ExecuteNonQuery();
+                zachovat.Add(b.Id);
+            }
+            poradi += 10;
+        }
+
+        // Smazat varianty, které už nejsou v seznamu
+        foreach (var id in existujici)
+        {
+            if (zachovat.Contains(id)) continue;
+            using var del = conn.CreateCommand();
+            del.Transaction = tx;
+            del.CommandText = "DELETE FROM BaleniKarty WHERE Id = $id";
+            del.Parameters.AddWithValue("$id", id);
+            del.ExecuteNonQuery();
+        }
+
+        tx.Commit();
     }
 
     public static List<SkladovaKarta> LoadKartyPodLimitem()
@@ -901,7 +1049,7 @@ public static class DatabaseService
         cmd.CommandText = @"
             SELECT vr.Id, vr.SkladovaKarta_Id, sk.Nazev,
                    vr.Mnozstvi_Evidencni, vr.Pocet_Baleni_Info,
-                   vr.Nakupni_Cena_Bez_DPH, sk.Evidencni_Jednotka
+                   vr.Nakupni_Cena_Bez_DPH, sk.Evidencni_Jednotka, sk.Sazba_DPH
               FROM VydejkaRadek vr
               JOIN SkladovaKarta sk ON sk.Id = vr.SkladovaKarta_Id
              WHERE vr.Vydejka_Id = $vid
@@ -919,7 +1067,8 @@ public static class DatabaseService
                 MnozstviEvidencni = (decimal)reader.GetDouble(3),
                 PocetBaleniInfo   = reader.IsDBNull(4) ? null : (decimal)reader.GetDouble(4),
                 NakupniCenaBezDPH = reader.IsDBNull(5) ? null : (decimal)reader.GetDouble(5),
-                EvidencniJednotka = reader.GetString(6)
+                EvidencniJednotka = reader.GetString(6),
+                SazbaDPH          = reader.IsDBNull(7) ? 21m : (decimal)reader.GetDouble(7)
             });
         }
         return list;

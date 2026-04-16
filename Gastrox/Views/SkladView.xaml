@@ -211,26 +211,68 @@
                         <TextBlock Text="EAN"/>
                         <TextBox Text="{Binding EAN, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" Padding="6,4"/>
 
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="8"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Evidenční jednotka"/>
-                                <ComboBox ItemsSource="{Binding EvidencniJednotky}"
-                                          SelectedItem="{Binding EvidencniJednotka_Sel}"
-                                          Margin="0,2,0,10" Padding="6,4"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="Koeficient"/>
-                                <TextBox Text="{Binding KoeficientPrepoctu, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" Margin="0,2,0,10" Padding="6,4"/>
-                            </StackPanel>
-                        </Grid>
+                        <TextBlock Text="Evidenční jednotka"/>
+                        <ComboBox ItemsSource="{Binding EvidencniJednotky}"
+                                  SelectedItem="{Binding EvidencniJednotka_Sel}"
+                                  Margin="0,2,0,12" Padding="6,4"/>
 
-                        <TextBlock Text="Typ balení (Láhev 0,7l, Sud 50l, …)"/>
-                        <TextBox Text="{Binding TypBaleni, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" Padding="6,4"/>
+                        <!-- Varianty balení (Sud 50l, Sud 30l, Láhev 0,7l, …) -->
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,4">
+                            <TextBlock Text="Varianty balení" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <Button Content="+ Přidat variantu"
+                                    Command="{Binding PridatBaleniCommand}"
+                                    Margin="12,0,0,0" Padding="10,4"
+                                    Background="#0078D4" Foreground="White"
+                                    BorderThickness="0" FontSize="12" Cursor="Hand"/>
+                        </StackPanel>
+                        <DataGrid ItemsSource="{Binding Baleni}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="1" BorderBrush="#E0E0E0"
+                                  RowHeight="32"
+                                  Margin="0,0,0,12">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Název balení" Width="*"
+                                                    Binding="{Binding Nazev, UpdateSourceTrigger=PropertyChanged}"/>
+                                <DataGridTextColumn Header="Koef." Width="60"
+                                                    Binding="{Binding KoeficientPrepoctu, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"/>
+                                <DataGridTextColumn Header="Nákup bez DPH" Width="100"
+                                                    Binding="{Binding NakupniCenaBezDPH, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"/>
+                                <DataGridTemplateColumn Header="Výchozí" Width="60">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <RadioButton IsChecked="{Binding JeVychozi, Mode=OneWay}"
+                                                         GroupName="VychoziBaleni"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center"
+                                                         Cursor="Hand"
+                                                         Command="{Binding DataContext.NastavitVychoziBaleniCommand,
+                                                                            RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                         CommandParameter="{Binding}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="" Width="32">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="✕" FontSize="11"
+                                                    Width="24" Height="24"
+                                                    Background="Transparent"
+                                                    Foreground="#D13438"
+                                                    BorderBrush="#E0E0E0" BorderThickness="1"
+                                                    Cursor="Hand"
+                                                    ToolTip="Odebrat variantu"
+                                                    Command="{Binding DataContext.OdebratBaleniCommand,
+                                                                       RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
 
                         <Border BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Margin="0,6,0,12"/>
 
@@ -248,8 +290,11 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="Nákupní cena bez DPH"/>
-                                <TextBox Text="{Binding NakupniCenaBezDPH, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" Margin="0,2,0,4" Padding="6,4"/>
+                                <TextBlock Text="Nákupní cena bez DPH (výchozí balení)" Foreground="#666" FontSize="11"/>
+                                <Border Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="1"
+                                        CornerRadius="3" Padding="6,4" Margin="0,2,0,4">
+                                    <TextBlock Text="{Binding NakupniCenaBezDPH, StringFormat=N2}"/>
+                                </Border>
                                 <TextBlock Foreground="#666"
                                            Text="{Binding NakupniCenaSDPH, StringFormat='s DPH: {0:N2} Kč'}"
                                            Margin="0,0,0,10"/>

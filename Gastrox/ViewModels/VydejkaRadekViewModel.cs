@@ -50,7 +50,8 @@ public class VydejkaRadekViewModel : ViewModelBase
             NazevZbozi        = _vybraneZbozi?.Nazev ?? string.Empty,
             EvidencniJednotka = EvidencniJednotka,
             MnozstviEvidencni = MnozstviEvidencni,
-            NakupniCenaBezDPH = _vybraneZbozi?.NakupniCenaBezDPH
+            NakupniCenaBezDPH = _vybraneZbozi?.NakupniCenaBezDPH,
+            SazbaDPH          = _vybraneZbozi?.SazbaDPH ?? 21m
         };
     }
 }

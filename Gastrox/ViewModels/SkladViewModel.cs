@@ -96,9 +96,6 @@ public class SkladViewModel : ViewModelBase
     private string _kategorie = "Tvrdý alkohol";
     private string? _ean;
     private string _evidencniJednotka = "Litr";
-    private string _typBaleni = string.Empty;
-    private decimal _koeficientPrepoctu = 1m;
-    private decimal _nakupniCenaBezDPH;
     private SazbaDPH? _vybranaSazba;
     private decimal _prodejniCenaSDPH;
     private decimal _minimalniStav;
@@ -108,22 +105,13 @@ public class SkladViewModel : ViewModelBase
     public string Kategorie_Sel         { get => _kategorie;         set => SetProperty(ref _kategorie, value); }
     public string? EAN                  { get => _ean;               set => SetProperty(ref _ean, value); }
     public string EvidencniJednotka_Sel { get => _evidencniJednotka; set => SetProperty(ref _evidencniJednotka, value); }
-    public string TypBaleni             { get => _typBaleni;         set => SetProperty(ref _typBaleni, value); }
-    public decimal KoeficientPrepoctu   { get => _koeficientPrepoctu;set => SetProperty(ref _koeficientPrepoctu, value); }
 
+    /// <summary>Varianty balení editované karty (např. „Sud 50l" + „Sud 30l").</summary>
+    public ObservableCollection<BaleniRadekViewModel> Baleni { get; } = new();
+
+    /// <summary>Nákupní cena z výchozí varianty (slouží pro výpočet marže a SDPH náhledu).</summary>
     public decimal NakupniCenaBezDPH
-    {
-        get => _nakupniCenaBezDPH;
-        set
-        {
-            if (SetProperty(ref _nakupniCenaBezDPH, value))
-            {
-                OnPropertyChanged(nameof(NakupniCenaSDPH));
-                OnPropertyChanged(nameof(MarzeKc));
-                OnPropertyChanged(nameof(MarzeProcent));
-            }
-        }
-    }
+        => Baleni.FirstOrDefault(b => b.JeVychozi)?.NakupniCenaBezDPH ?? 0m;
 
     public SazbaDPH? VybranaSazba
     {
@@ -170,6 +158,9 @@ public class SkladViewModel : ViewModelBase
     public ICommand NovaKartaCommand { get; }
     public ICommand UlozitCommand { get; }
     public ICommand DeaktivovatCommand { get; }
+    public ICommand PridatBaleniCommand { get; }
+    public ICommand OdebratBaleniCommand { get; }
+    public ICommand NastavitVychoziBaleniCommand { get; }
 
     public SkladViewModel()
     {
@@ -187,10 +178,63 @@ public class SkladViewModel : ViewModelBase
         });
 
         UlozitCommand = new RelayCommand(_ => Uloz(),
-            _ => !string.IsNullOrWhiteSpace(Nazev) && KoeficientPrepoctu > 0 && VybranaSazba is not null);
+            _ => !string.IsNullOrWhiteSpace(Nazev)
+              && VybranaSazba is not null
+              && Baleni.Count > 0
+              && Baleni.Count(b => b.JeVychozi) == 1
+              && Baleni.All(b => b.KoeficientPrepoctu > 0 && !string.IsNullOrWhiteSpace(b.Nazev)));
 
         DeaktivovatCommand = new RelayCommand(_ => Deaktivuj(),
             _ => VybranaKarta is not null);
+
+        PridatBaleniCommand = new RelayCommand(_ =>
+        {
+            var nove = new BaleniRadekViewModel
+            {
+                Nazev = string.Empty,
+                KoeficientPrepoctu = 1m,
+                NakupniCenaBezDPH = 0m,
+                JeVychozi = Baleni.Count == 0
+            };
+            Baleni.Add(nove);
+            OnPropertyChanged(nameof(NakupniCenaBezDPH));
+            OnPropertyChanged(nameof(NakupniCenaSDPH));
+            OnPropertyChanged(nameof(MarzeKc));
+            OnPropertyChanged(nameof(MarzeProcent));
+            System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+        });
+
+        OdebratBaleniCommand = new RelayCommand(p =>
+        {
+            if (p is not BaleniRadekViewModel r) return;
+            if (Baleni.Count <= 1)
+            {
+                MessageBox.Show("Karta musí mít alespoň jednu variantu balení.", "Upozornění",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            var byloVychozi = r.JeVychozi;
+            Baleni.Remove(r);
+            if (byloVychozi && Baleni.Count > 0)
+                Baleni[0].JeVychozi = true;
+            OnPropertyChanged(nameof(NakupniCenaBezDPH));
+            OnPropertyChanged(nameof(NakupniCenaSDPH));
+            OnPropertyChanged(nameof(MarzeKc));
+            OnPropertyChanged(nameof(MarzeProcent));
+            System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+        });
+
+        NastavitVychoziBaleniCommand = new RelayCommand(p =>
+        {
+            if (p is not BaleniRadekViewModel r) return;
+            foreach (var b in Baleni) b.JeVychozi = false;
+            r.JeVychozi = true;
+            OnPropertyChanged(nameof(NakupniCenaBezDPH));
+            OnPropertyChanged(nameof(NakupniCenaSDPH));
+            OnPropertyChanged(nameof(MarzeKc));
+            OnPropertyChanged(nameof(MarzeProcent));
+            System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+        });
     }
 
     private void NacistCiselniky()
@@ -270,13 +314,48 @@ public class SkladViewModel : ViewModelBase
         Kategorie_Sel = k.Kategorie;
         EAN = k.EAN;
         EvidencniJednotka_Sel = k.EvidencniJednotka;
-        TypBaleni = k.TypBaleni;
-        KoeficientPrepoctu = k.KoeficientPrepoctu;
-        NakupniCenaBezDPH = k.NakupniCenaBezDPH;
         VybranaSazba = DostupneSazby.FirstOrDefault(s => s.Sazba == k.SazbaDPH) ?? DostupneSazby.FirstOrDefault();
         ProdejniCenaSDPH = k.ProdejniCenaSDPH;
         MinimalniStav = k.MinimalniStav;
         Dodavatel = k.Dodavatel;
+
+        // Načíst varianty balení karty
+        Baleni.Clear();
+        var varianty = DatabaseService.LoadBaleniProKartu(k.Id);
+        if (varianty.Count == 0)
+        {
+            // Legacy karta bez variant – vytvořit výchozí z polí karty
+            varianty.Add(new BaleniKarty
+            {
+                Nazev = string.IsNullOrWhiteSpace(k.TypBaleni) ? "Výchozí" : k.TypBaleni,
+                KoeficientPrepoctu = k.KoeficientPrepoctu <= 0 ? 1m : k.KoeficientPrepoctu,
+                NakupniCenaBezDPH = k.NakupniCenaBezDPH,
+                JeVychozi = true
+            });
+        }
+        foreach (var b in varianty)
+        {
+            var vm = new BaleniRadekViewModel(b);
+            vm.PropertyChanged += BaleniRadekZmenen;
+            Baleni.Add(vm);
+        }
+        OnPropertyChanged(nameof(NakupniCenaBezDPH));
+        OnPropertyChanged(nameof(NakupniCenaSDPH));
+        OnPropertyChanged(nameof(MarzeKc));
+        OnPropertyChanged(nameof(MarzeProcent));
+    }
+
+    private void BaleniRadekZmenen(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(BaleniRadekViewModel.NakupniCenaBezDPH)
+                            or nameof(BaleniRadekViewModel.JeVychozi))
+        {
+            OnPropertyChanged(nameof(NakupniCenaBezDPH));
+            OnPropertyChanged(nameof(NakupniCenaSDPH));
+            OnPropertyChanged(nameof(MarzeKc));
+            OnPropertyChanged(nameof(MarzeProcent));
+        }
+        System.Windows.Input.CommandManager.InvalidateRequerySuggested();
     }
 
     private void VycistitFormular()
@@ -286,13 +365,26 @@ public class SkladViewModel : ViewModelBase
         Kategorie_Sel = Kategorie.FirstOrDefault()?.Nazev ?? string.Empty;
         EAN = null;
         EvidencniJednotka_Sel = "Litr";
-        TypBaleni = string.Empty;
-        KoeficientPrepoctu = 1m;
-        NakupniCenaBezDPH = 0;
         VybranaSazba = DostupneSazby.FirstOrDefault(s => s.JeVychozi) ?? DostupneSazby.FirstOrDefault();
         ProdejniCenaSDPH = 0;
         MinimalniStav = 0;
         Dodavatel = null;
+
+        Baleni.Clear();
+        var vychozi = new BaleniRadekViewModel
+        {
+            Nazev = string.Empty,
+            KoeficientPrepoctu = 1m,
+            NakupniCenaBezDPH = 0m,
+            JeVychozi = true
+        };
+        vychozi.PropertyChanged += BaleniRadekZmenen;
+        Baleni.Add(vychozi);
+
+        OnPropertyChanged(nameof(NakupniCenaBezDPH));
+        OnPropertyChanged(nameof(NakupniCenaSDPH));
+        OnPropertyChanged(nameof(MarzeKc));
+        OnPropertyChanged(nameof(MarzeProcent));
     }
 
     private void Uloz()
@@ -306,6 +398,15 @@ public class SkladViewModel : ViewModelBase
             return;
         }
 
+        // Výchozí varianta zrcadlí pole na kartě (zpětná kompatibilita reportů)
+        var vychozi = Baleni.FirstOrDefault(b => b.JeVychozi);
+        if (vychozi is null)
+        {
+            MessageBox.Show("Označte jednu variantu balení jako výchozí.", "Upozornění",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
         var k = new SkladovaKarta
         {
             Id = _editId,
@@ -313,16 +414,26 @@ public class SkladViewModel : ViewModelBase
             Kategorie = Kategorie_Sel,
             EAN = string.IsNullOrWhiteSpace(EAN) ? null : EAN!.Trim(),
             EvidencniJednotka = EvidencniJednotka_Sel,
-            TypBaleni = TypBaleni?.Trim() ?? string.Empty,
-            KoeficientPrepoctu = KoeficientPrepoctu,
-            NakupniCenaBezDPH = NakupniCenaBezDPH,
+            TypBaleni = (vychozi.Nazev ?? string.Empty).Trim(),
+            KoeficientPrepoctu = vychozi.KoeficientPrepoctu,
+            NakupniCenaBezDPH = vychozi.NakupniCenaBezDPH,
             SazbaDPH = SazbaValue,
             ProdejniCenaSDPH = ProdejniCenaSDPH,
             MinimalniStav = MinimalniStav,
             Dodavatel = string.IsNullOrWhiteSpace(Dodavatel) ? null : Dodavatel!.Trim()
         };
 
-        DatabaseService.SaveKarta(k);
+        var kartaId = DatabaseService.SaveKarta(k);
+        try
+        {
+            DatabaseService.SaveBaleniProKartu(kartaId, Baleni.Select(b => b.ToModel()));
+        }
+        catch (System.Exception ex)
+        {
+            MessageBox.Show("Nepodařilo se uložit varianty balení:\n" + ex.Message,
+                "Chyba", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
         NacistSeznam();
         VycistitFormular();
     }

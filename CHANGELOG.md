@@ -10,6 +10,22 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.12.0] — 2026-04-16
+
+### Přidáno
+- **Více variant balení na skladové kartě** — jedna karta (např. „Plzeň 12°") může mít více variant balení: Sud 50l, Sud 30l, Láhev 0,7l… Každá varianta má vlastní **koeficient přepočtu** a **nákupní cenu bez DPH**.
+  - Nová tabulka `BaleniKarty` + migrace (existující karty dostanou jednu výchozí variantu dopočítanou z dosavadních polí).
+  - **Sklad → editace karty:** nová sekce *Varianty balení* s DataGridem (Název, Koeficient, Nákup bez DPH, radio *výchozí*, mazání).
+  - **Naskladnit wizard:** nový `ComboBox Balení` u každé položky — uživatel zvolí, ve které variantě zboží přijímá, cena i přepočet se automaticky vyplní z varianty.
+- **DPH sumář dle sazeb v PDF dokladech** — příjemky a výdejky v PDF nyní místo jednoho řádku *Celkem* vypisují tabulku *DPH breakdown* (Sazba / Základ / DPH / Celkem) se součtovým řádkem.
+
+### Upraveno
+- `SkladovaKarta` nadále drží scalar *TypBaleni / Koeficient / NakupniCenaBezDPH* — tato pole jsou zrcadlem výchozí varianty (kompatibilita s pohyby/uzávěrkami).
+- `VydejkaRadek` nese `SazbaDPH` (JOIN ze `SkladovaKarta.Sazba_DPH` při načítání), takže DPH sumář ve výdejkovém PDF funguje i pro historické doklady.
+- `PrijemkaRadekViewModel` — výběr varianty přepočítává množství v evidenčních jednotkách a celkové ceny v reálném čase.
+
+---
+
 ## [0.11.0] — 2026-04-16
 
 ### Přidáno

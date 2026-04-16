@@ -50,6 +50,32 @@ CREATE INDEX IF NOT EXISTS IX_SkladovaKarta_EAN        ON SkladovaKarta(EAN);
 CREATE INDEX IF NOT EXISTS IX_SkladovaKarta_Aktivni    ON SkladovaKarta(Je_Aktivni);
 
 -- ---------------------------------------------------------------------
+-- VARIANTY BALENÍ KARTY (jedna karta = 1..N balení: Sud 50l, Sud 30l, ...)
+-- Pole na SkladovaKarta (Typ_Baleni, Koeficient_Prepoctu, Nakupni_Cena_Bez_DPH)
+-- zrcadlí aktuální výchozí variantu pro zpětnou kompatibilitu reportů.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS BaleniKarty (
+    Id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    SkladovaKarta_Id      INTEGER NOT NULL,
+    Nazev                 TEXT    NOT NULL,            -- "Sud 50l", "Sud 30l", "Láhev 0,7l"
+    Koeficient_Prepoctu   REAL    NOT NULL DEFAULT 1,
+    Nakupni_Cena_Bez_DPH  REAL    NOT NULL DEFAULT 0,
+    Je_Vychozi            INTEGER NOT NULL DEFAULT 0,
+    Je_Aktivni            INTEGER NOT NULL DEFAULT 1,
+    Poradi                INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (SkladovaKarta_Id) REFERENCES SkladovaKarta(Id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS IX_BaleniKarty_Karta ON BaleniKarty(SkladovaKarta_Id);
+
+-- Seed: pro každou existující kartu bez variant vytvoř výchozí variantu z polí karty
+INSERT INTO BaleniKarty (SkladovaKarta_Id, Nazev, Koeficient_Prepoctu, Nakupni_Cena_Bez_DPH, Je_Vychozi, Je_Aktivni, Poradi)
+SELECT k.Id,
+       CASE WHEN k.Typ_Baleni IS NULL OR trim(k.Typ_Baleni) = '' THEN 'Výchozí' ELSE k.Typ_Baleni END,
+       k.Koeficient_Prepoctu, k.Nakupni_Cena_Bez_DPH, 1, 1, 10
+  FROM SkladovaKarta k
+ WHERE NOT EXISTS (SELECT 1 FROM BaleniKarty b WHERE b.SkladovaKarta_Id = k.Id);
+
+-- ---------------------------------------------------------------------
 -- STAV KARTY PER-SKLAD (nahrazuje SkladovaKarta.Aktualni_Stav_Evidencni)
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS SkladovyStav (

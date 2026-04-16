@@ -124,10 +124,10 @@
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="2">
                                                     <TextBlock Text="Balení" Foreground="#666" FontSize="12"/>
-                                                    <Border Background="White" BorderBrush="#E1E5EA" BorderThickness="1"
-                                                            CornerRadius="3" Padding="8,7" Margin="0,4,0,0">
-                                                        <TextBlock Text="{Binding TypBaleni}" FontSize="14"/>
-                                                    </Border>
+                                                    <ComboBox ItemsSource="{Binding DostupnaBaleni}"
+                                                              SelectedItem="{Binding VybraneBaleni, UpdateSourceTrigger=PropertyChanged}"
+                                                              DisplayMemberPath="Nazev"
+                                                              Margin="0,4,0,0" Padding="8,6" FontSize="14"/>
                                                 </StackPanel>
                                             </Grid>
 
