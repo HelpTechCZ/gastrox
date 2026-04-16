@@ -73,6 +73,7 @@
                                                 IsReadOnly="True" Width="*"/>
                             <DataGridTextColumn Header="Fyzický stav"
                                                 Binding="{Binding FyzickyStav, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                                EditingElementStyle="{StaticResource NumericTextBox}"
                                                 Width="*"/>
                             <DataGridTextColumn Header="Rozdíl"
                                                 Binding="{Binding Rozdil, StringFormat=N2}"

@@ -10,6 +10,16 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.12.2] — 2026-04-16
+
+### Přidáno
+- **NumericBoxBehavior** — attached chování pro všechny numerické vstupy:
+  - **Výběr celého obsahu při focusu** (klikem i tabem). Uživatel už nemusí mířit kurzor mezi „0,00" — prostě klikne a hned píše.
+  - **Tečka = čárka** — zadaná tečka se automaticky převede na desetinnou čárku podle kultury, takže „1.10" a „1,10" fungují zcela zaměnitelně.
+- Aplikováno na numerická pole všude: wizardy **Naskladnit / Vyskladnit / Převod / Inventura**, editaci skladové karty (Koef., Nákup, Prodej, Minimální stav) i nastavení (sazba DPH, pořadí kategorie).
+
+---
+
 ## [0.12.1] — 2026-04-16
 
 ### Upraveno

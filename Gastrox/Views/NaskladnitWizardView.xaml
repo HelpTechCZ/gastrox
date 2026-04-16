@@ -158,11 +158,13 @@
                                                 <StackPanel Grid.Column="0">
                                                     <TextBlock Text="Počet balení" Foreground="#666" FontSize="12"/>
                                                     <TextBox Text="{Binding PocetBaleni, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                                             Style="{StaticResource NumericTextBox}"
                                                              Margin="0,4,0,0" Padding="8,7" FontSize="14"/>
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="2">
                                                     <TextBlock Text="Cena za balení (bez DPH)" Foreground="#666" FontSize="12"/>
                                                     <TextBox Text="{Binding NakupniCenaBezDPH, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                                             Style="{StaticResource NumericTextBox}"
                                                              Margin="0,4,0,0" Padding="8,7" FontSize="14"/>
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="4">
