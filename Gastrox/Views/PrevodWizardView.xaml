@@ -126,7 +126,7 @@
                                                 Binding="{Binding EvidencniJednotka}"
                                                 IsReadOnly="True" Width="60"/>
                             <DataGridTextColumn Header="Množství k převodu"
-                                                Binding="{Binding MnozstviEvidencni, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                                Binding="{Binding MnozstviEvidencni, StringFormat=N2}"
                                                 EditingElementStyle="{StaticResource NumericTextBox}"
                                                 Width="*"/>
 

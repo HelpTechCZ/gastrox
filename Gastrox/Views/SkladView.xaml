@@ -238,10 +238,10 @@
                                 <DataGridTextColumn Header="Název balení" Width="*"
                                                     Binding="{Binding Nazev, UpdateSourceTrigger=PropertyChanged}"/>
                                 <DataGridTextColumn Header="Koef." Width="60"
-                                                    Binding="{Binding KoeficientPrepoctu, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                                    Binding="{Binding KoeficientPrepoctu, StringFormat=N2}"
                                                     EditingElementStyle="{StaticResource NumericTextBox}"/>
                                 <DataGridTextColumn Header="Nákup bez DPH" Width="100"
-                                                    Binding="{Binding NakupniCenaBezDPH, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                                    Binding="{Binding NakupniCenaBezDPH, StringFormat=N2}"
                                                     EditingElementStyle="{StaticResource NumericTextBox}"/>
                                 <DataGridTemplateColumn Header="Výchozí" Width="60">
                                     <DataGridTemplateColumn.CellTemplate>
@@ -303,7 +303,7 @@
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Prodejní cena s DPH"/>
-                                <TextBox Text="{Binding ProdejniCenaSDPH, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                <TextBox Text="{Binding ProdejniCenaSDPH, StringFormat=N2}"
                                          Style="{StaticResource NumericTextBox}"
                                          Margin="0,2,0,4" Padding="6,4"/>
                                 <TextBlock Foreground="#666"
@@ -325,7 +325,7 @@
                         <Border BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Margin="0,6,0,12"/>
 
                         <TextBlock Text="Minimální stav (limit pro objednání)"/>
-                        <TextBox Text="{Binding MinimalniStav, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                        <TextBox Text="{Binding MinimalniStav, StringFormat=N2}"
                                  Style="{StaticResource NumericTextBox}"
                                  Margin="0,2,0,10" Padding="6,4"/>
 

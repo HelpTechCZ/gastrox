@@ -72,7 +72,7 @@
                                                 Binding="{Binding TeoretickyStav, StringFormat=N2}"
                                                 IsReadOnly="True" Width="*"/>
                             <DataGridTextColumn Header="Fyzický stav"
-                                                Binding="{Binding FyzickyStav, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
+                                                Binding="{Binding FyzickyStav, StringFormat=N2}"
                                                 EditingElementStyle="{StaticResource NumericTextBox}"
                                                 Width="*"/>
                             <DataGridTextColumn Header="Rozdíl"

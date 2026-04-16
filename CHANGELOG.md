@@ -10,6 +10,13 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.12.5] — 2026-04-16
+
+### Opraveno
+- **Duplikace znaků při psaní do numerických polí** — zadání „12,30" dříve vyprodukovalo „12,30,00", protože kombinace `UpdateSourceTrigger=PropertyChanged` + `StringFormat=N2` způsobovala, že binding při každém stisku klávesy dělal round-trip přes formátování a přeformátovaný text se vracel zpět do TextBoxu, kde se lepil přes rozepsanou hodnotu. `UpdateSourceTrigger=PropertyChanged` odstraněn ze všech numerických bindingů (Naskladnit, Vyskladnit, Převod, Inventura, skladová karta, sazby DPH) — binding teď commituje až na LostFocus, formátování „N2" proběhne až po opuštění pole. Trade-off: živé mezisoučty se aktualizují po Tab / kliknutí mimo pole.
+
+---
+
 ## [0.12.4] — 2026-04-16
 
 ### Přidáno
