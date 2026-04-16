@@ -10,6 +10,13 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.12.4] — 2026-04-16
+
+### Přidáno
+- **Rozpis DPH v PDF uzávěrky** — za přehledem karet nová tabulka s rozpisem podle jednotlivých sazeb: pro nákupní i prodejní hodnotu (Základ / DPH / Celkem) + celkový součtový řádek.
+
+---
+
 ## [0.12.3] — 2026-04-16
 
 ### Opraveno
