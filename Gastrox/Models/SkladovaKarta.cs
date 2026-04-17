@@ -45,6 +45,7 @@ public class SkladovaKarta
     /// <summary>Místo mazání se karta pouze deaktivuje – zůstává v historii.</summary>
     public bool JeAktivni { get; set; } = true;
 
+    public DateTime? DatumExpirace { get; set; }
     public DateTime? DatumPosledniInventury { get; set; }
     public DateTime? DatumPoslednihoNaskladneni { get; set; }
 
@@ -52,6 +53,14 @@ public class SkladovaKarta
 
     /// <summary>True pokud stav klesl na/pod minimální limit (dashboard widget).</summary>
     public bool JePodLimitem => AktualniStavEvidencni <= MinimalniStav;
+
+    /// <summary>Počet dní do expirace (null pokud není nastaveno).</summary>
+    public int? DniDoExpirace => DatumExpirace.HasValue
+        ? (int)Math.Ceiling((DatumExpirace.Value - DateTime.Now).TotalDays)
+        : null;
+
+    /// <summary>True pokud expiruje do 7 dní nebo už expirovala.</summary>
+    public bool ExpirujeBrzy => DniDoExpirace is not null and <= 7;
 
     /// <summary>
     /// Přepočet evidenčního stavu na počet balení (informativně).

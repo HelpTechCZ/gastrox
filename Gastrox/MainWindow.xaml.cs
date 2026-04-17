@@ -209,5 +209,6 @@ public partial class MainWindow : Window
     private void Prevody_Click(object sender, RoutedEventArgs e)    => ShowPrevody();
     private void Uzaverka_Click(object sender, RoutedEventArgs e)   => ShowUzaverka();
     private void Pohyby_Click(object sender, RoutedEventArgs e)     => MainContent.Content = new PohybyView();
+    private void Marze_Click(object sender, RoutedEventArgs e)      => MainContent.Content = new MarzeView();
     private void Nastaveni_Click(object sender, RoutedEventArgs e)  => MainContent.Content = new NastaveniView();
 }

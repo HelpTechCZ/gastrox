@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS SkladovaKarta (
     Minimalni_Stav               REAL    NOT NULL DEFAULT 0,
     Dodavatel                    TEXT,
     Je_Aktivni                   INTEGER NOT NULL DEFAULT 1,  -- boolean 0/1
+    Datum_Expirace               TEXT,                        -- ISO 8601 – datum minimální trvanlivosti
     Datum_Posledni_Inventury     TEXT,                        -- ISO 8601
     Datum_Posledniho_Naskladneni TEXT
 );

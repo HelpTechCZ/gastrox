@@ -12,6 +12,7 @@ namespace Gastrox.ViewModels;
 public class DashboardViewModel : ViewModelBase
 {
     public ObservableCollection<SkladovaKarta> KartyPodLimitem { get; } = new();
+    public ObservableCollection<SkladovaKarta> KartyExpirujici { get; } = new();
 
     private int _pohybyZaTyden;
     public int PohybyZaTyden
@@ -57,6 +58,10 @@ public class DashboardViewModel : ViewModelBase
         foreach (var k in DatabaseService.LoadKartyPodLimitem())
             KartyPodLimitem.Add(k);
 
+        KartyExpirujici.Clear();
+        foreach (var k in DatabaseService.LoadKartyExpirujici())
+            KartyExpirujici.Add(k);
+
         try
         {
             PohybyZaTyden = DatabaseService.SpocitatPohybyZaTyden();
@@ -70,6 +75,8 @@ public class DashboardViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(MaPodLimitem));
         OnPropertyChanged(nameof(PocetPodLimitem));
+        OnPropertyChanged(nameof(MaExpirujici));
+        OnPropertyChanged(nameof(PocetExpirujici));
     }
 
     /// <summary>
@@ -115,4 +122,6 @@ public class DashboardViewModel : ViewModelBase
 
     public bool MaPodLimitem => KartyPodLimitem.Count > 0;
     public int PocetPodLimitem => KartyPodLimitem.Count;
+    public bool MaExpirujici => KartyExpirujici.Count > 0;
+    public int PocetExpirujici => KartyExpirujici.Count;
 }

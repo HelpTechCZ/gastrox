@@ -107,6 +107,7 @@ public class SkladViewModel : ViewModelBase
     private SazbaDPH? _vybranaSazba;
     private decimal _prodejniCenaSDPH;
     private decimal _minimalniStav;
+    private DateTime? _datumExpirace;
     private string? _dodavatel;
 
     public string Nazev                 { get => _nazev;             set => SetProperty(ref _nazev, value); }
@@ -150,8 +151,9 @@ public class SkladViewModel : ViewModelBase
         }
     }
 
-    public decimal MinimalniStav { get => _minimalniStav; set => SetProperty(ref _minimalniStav, value); }
-    public string? Dodavatel     { get => _dodavatel;     set => SetProperty(ref _dodavatel, value); }
+    public decimal MinimalniStav   { get => _minimalniStav;   set => SetProperty(ref _minimalniStav, value); }
+    public DateTime? DatumExpirace { get => _datumExpirace; set => SetProperty(ref _datumExpirace, value); }
+    public string? Dodavatel       { get => _dodavatel;     set => SetProperty(ref _dodavatel, value); }
 
     // ---------- Vypočítané (read-only pro UI) ----------
     private decimal SazbaValue => _vybranaSazba?.Sazba ?? 0m;
@@ -169,6 +171,7 @@ public class SkladViewModel : ViewModelBase
     public ICommand PridatBaleniCommand { get; }
     public ICommand OdebratBaleniCommand { get; }
     public ICommand NastavitVychoziBaleniCommand { get; }
+    public ICommand ExportExcelCommand { get; }
 
     public SkladViewModel()
     {
@@ -243,6 +246,8 @@ public class SkladViewModel : ViewModelBase
             OnPropertyChanged(nameof(MarzeProcent));
             System.Windows.Input.CommandManager.InvalidateRequerySuggested();
         });
+
+        ExportExcelCommand = new RelayCommand(_ => ExportExcel());
     }
 
     private void NacistCiselniky()
@@ -333,6 +338,7 @@ public class SkladViewModel : ViewModelBase
         VybranaSazba = DostupneSazby.FirstOrDefault(s => s.Sazba == k.SazbaDPH) ?? DostupneSazby.FirstOrDefault();
         ProdejniCenaSDPH = k.ProdejniCenaSDPH;
         MinimalniStav = k.MinimalniStav;
+        DatumExpirace = k.DatumExpirace;
         Dodavatel = k.Dodavatel;
 
         // Načíst varianty balení karty
@@ -384,6 +390,7 @@ public class SkladViewModel : ViewModelBase
         VybranaSazba = DostupneSazby.FirstOrDefault(s => s.JeVychozi) ?? DostupneSazby.FirstOrDefault();
         ProdejniCenaSDPH = 0;
         MinimalniStav = 0;
+        DatumExpirace = null;
         Dodavatel = null;
 
         Baleni.Clear();
@@ -436,6 +443,7 @@ public class SkladViewModel : ViewModelBase
             SazbaDPH = SazbaValue,
             ProdejniCenaSDPH = ProdejniCenaSDPH,
             MinimalniStav = MinimalniStav,
+            DatumExpirace = DatumExpirace,
             Dodavatel = string.IsNullOrWhiteSpace(Dodavatel) ? null : Dodavatel!.Trim()
         };
 
@@ -460,5 +468,20 @@ public class SkladViewModel : ViewModelBase
         DatabaseService.DeactivateKarta(VybranaKarta.Id);
         NacistSeznam();
         VycistitFormular();
+    }
+
+    private void ExportExcel()
+    {
+        try
+        {
+            var path = ExcelService.ExportSkladoveKarty(Karty);
+            MessageBox.Show($"Export uložen:\n{path}", "Excel export",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Chyba při exportu:\n" + ex.Message, "Chyba",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 }

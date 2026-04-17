@@ -65,6 +65,7 @@
                     <Button Content="🔀 Převody"     Style="{StaticResource MenuButton}" Click="Prevody_Click"/>
                     <Button Content="📋 Uzávěrka"    Style="{StaticResource MenuButton}" Click="Uzaverka_Click"/>
                     <Button Content="📊 Pohyby"      Style="{StaticResource MenuButton}" Click="Pohyby_Click"/>
+                    <Button Content="📈 Marže"       Style="{StaticResource MenuButton}" Click="Marze_Click"/>
                 </StackPanel>
             </DockPanel>
         </Border>

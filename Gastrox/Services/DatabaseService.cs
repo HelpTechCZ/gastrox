@@ -73,8 +73,9 @@ public static class DatabaseService
         AddColumnIfMissing("Uzaverka",      "Sklad_Id", "INTEGER");
         AddColumnIfMissing("PohybSkladu",   "Sklad_Id", $"INTEGER NOT NULL DEFAULT {defaultSkladId}");
 
-        AddColumnIfMissing("VydejkaRadek", "Prodejni_Cena_S_DPH", "REAL");
-        AddColumnIfMissing("VydejkaRadek", "Sazba_DPH",           "REAL NOT NULL DEFAULT 21");
+        AddColumnIfMissing("VydejkaRadek",  "Prodejni_Cena_S_DPH", "REAL");
+        AddColumnIfMissing("VydejkaRadek",  "Sazba_DPH",           "REAL NOT NULL DEFAULT 21");
+        AddColumnIfMissing("SkladovaKarta", "Datum_Expirace",      "TEXT");
 
         // Pojistka pro starší DB: pokud init.sql z nějakého důvodu neaplikoval
         // nové tabulky pro převody mezi sklady, vytvoříme je explicitně zde.
@@ -190,7 +191,8 @@ public static class DatabaseService
                    Koeficient_Prepoctu, Aktualni_Stav_Evidencni,
                    Nakupni_Cena_Bez_DPH, Sazba_DPH, Prodejni_Cena_S_DPH,
                    Minimalni_Stav, Dodavatel, Je_Aktivni,
-                   Datum_Posledni_Inventury, Datum_Posledniho_Naskladneni
+                   Datum_Posledni_Inventury, Datum_Posledniho_Naskladneni,
+                   Datum_Expirace
               FROM SkladovaKarta
              WHERE Je_Aktivni = 1
              ORDER BY Nazev";
@@ -215,7 +217,8 @@ public static class DatabaseService
                 Dodavatel                   = reader.IsDBNull(12) ? null : reader.GetString(12),
                 JeAktivni                   = reader.GetInt32(13) == 1,
                 DatumPosledniInventury      = reader.IsDBNull(14) ? null : DateTime.Parse(reader.GetString(14)),
-                DatumPoslednihoNaskladneni  = reader.IsDBNull(15) ? null : DateTime.Parse(reader.GetString(15))
+                DatumPoslednihoNaskladneni  = reader.IsDBNull(15) ? null : DateTime.Parse(reader.GetString(15)),
+                DatumExpirace               = reader.IsDBNull(16) ? null : DateTime.Parse(reader.GetString(16))
             });
         }
 
@@ -239,11 +242,11 @@ public static class DatabaseService
                     (Nazev, Kategorie, EAN, Evidencni_Jednotka, Typ_Baleni,
                      Koeficient_Prepoctu, Aktualni_Stav_Evidencni,
                      Nakupni_Cena_Bez_DPH, Sazba_DPH, Prodejni_Cena_S_DPH,
-                     Minimalni_Stav, Dodavatel, Je_Aktivni)
+                     Minimalni_Stav, Dodavatel, Je_Aktivni, Datum_Expirace)
                 VALUES
                     ($nazev, $kat, $ean, $ej, $tb,
                      $kp, $stav, $nc, $dph, $pc,
-                     $min, $dod, 1);
+                     $min, $dod, 1, $exp);
                 SELECT last_insert_rowid();";
         }
         else
@@ -260,7 +263,8 @@ public static class DatabaseService
                     Sazba_DPH = $dph,
                     Prodejni_Cena_S_DPH = $pc,
                     Minimalni_Stav = $min,
-                    Dodavatel = $dod
+                    Dodavatel = $dod,
+                    Datum_Expirace = $exp
                 WHERE Id = $id;
                 SELECT $id;";
             cmd.Parameters.AddWithValue("$id", k.Id);
@@ -278,6 +282,7 @@ public static class DatabaseService
         cmd.Parameters.AddWithValue("$pc",    (double)k.ProdejniCenaSDPH);
         cmd.Parameters.AddWithValue("$min",   (double)k.MinimalniStav);
         cmd.Parameters.AddWithValue("$dod",   (object?)k.Dodavatel ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("$exp",   k.DatumExpirace.HasValue ? k.DatumExpirace.Value.ToString("o") : (object)DBNull.Value);
 
         var result = cmd.ExecuteScalar();
         return Convert.ToInt32(result);
@@ -427,6 +432,62 @@ public static class DatabaseService
             if (k.MinimalniStav > 0 && k.AktualniStavEvidencni <= k.MinimalniStav)
                 result.Add(k);
         return result;
+    }
+
+    public static List<SkladovaKarta> LoadKartyExpirujici(int dniDopredu = 7)
+    {
+        var all = LoadAktivniKarty();
+        var result = new List<SkladovaKarta>();
+        foreach (var k in all)
+            if (k.DatumExpirace.HasValue && k.DniDoExpirace <= dniDopredu)
+                result.Add(k);
+        result.Sort((a, b) => (a.DniDoExpirace ?? 999).CompareTo(b.DniDoExpirace ?? 999));
+        return result;
+    }
+
+    /// <summary>Načte marži za období – agregace výdejek s řádky mezi dvěma daty.</summary>
+    public static List<MarzeRadek> LoadMarzeZaObdobi(DateTime od, DateTime doo)
+    {
+        var list = new List<MarzeRadek>();
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT sk.Id, sk.Nazev, sk.Kategorie, sk.Evidencni_Jednotka,
+                   SUM(vr.Mnozstvi_Evidencni) AS Mnozstvi,
+                   SUM(vr.Mnozstvi_Evidencni * COALESCE(vr.Nakupni_Cena_Bez_DPH, 0)) AS NakupBezDPH,
+                   SUM(vr.Mnozstvi_Evidencni * COALESCE(vr.Nakupni_Cena_Bez_DPH, 0) * (1 + vr.Sazba_DPH / 100.0)) AS NakupSDPH,
+                   SUM(vr.Mnozstvi_Evidencni * COALESCE(vr.Prodejni_Cena_S_DPH, 0)) AS ProdejSDPH,
+                   SUM(vr.Mnozstvi_Evidencni * CASE WHEN vr.Sazba_DPH > 0
+                       THEN COALESCE(vr.Prodejni_Cena_S_DPH, 0) / (1 + vr.Sazba_DPH / 100.0)
+                       ELSE COALESCE(vr.Prodejni_Cena_S_DPH, 0) END) AS ProdejBezDPH
+              FROM VydejkaRadek vr
+              JOIN Vydejka v ON v.Id = vr.Vydejka_Id
+              JOIN SkladovaKarta sk ON sk.Id = vr.SkladovaKarta_Id
+             WHERE v.Datum_Vydeje >= $od AND v.Datum_Vydeje <= $doo
+               AND v.Typ_Vydeje = 'Prodej'
+             GROUP BY sk.Id
+             ORDER BY ProdejSDPH DESC";
+        cmd.Parameters.AddWithValue("$od",  od.ToString("o"));
+        cmd.Parameters.AddWithValue("$doo", doo.ToString("o"));
+
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            list.Add(new MarzeRadek
+            {
+                KartaId           = reader.GetInt32(0),
+                Nazev             = reader.GetString(1),
+                Kategorie         = reader.GetString(2),
+                EvidencniJednotka = reader.GetString(3),
+                Mnozstvi          = (decimal)reader.GetDouble(4),
+                NakupBezDPH       = (decimal)reader.GetDouble(5),
+                NakupSDPH         = (decimal)reader.GetDouble(6),
+                ProdejSDPH        = (decimal)reader.GetDouble(7),
+                ProdejBezDPH      = (decimal)reader.GetDouble(8)
+            });
+        }
+        return list;
     }
 
     // ----------------------------------------------------------------
@@ -1352,7 +1413,8 @@ public static class DatabaseService
                    COALESCE(ss.Stav_Evidencni, 0) AS Stav,
                    k.Nakupni_Cena_Bez_DPH, k.Sazba_DPH, k.Prodejni_Cena_S_DPH,
                    k.Minimalni_Stav, k.Dodavatel, k.Je_Aktivni,
-                   k.Datum_Posledni_Inventury, k.Datum_Posledniho_Naskladneni
+                   k.Datum_Posledni_Inventury, k.Datum_Posledniho_Naskladneni,
+                   k.Datum_Expirace
               FROM SkladovaKarta k
               LEFT JOIN SkladovyStav ss ON ss.SkladovaKarta_Id = k.Id AND ss.Sklad_Id = $s
              WHERE k.Je_Aktivni = 1
@@ -1379,7 +1441,8 @@ public static class DatabaseService
                 Dodavatel                   = reader.IsDBNull(12) ? null : reader.GetString(12),
                 JeAktivni                   = reader.GetInt32(13) == 1,
                 DatumPosledniInventury      = reader.IsDBNull(14) ? null : DateTime.Parse(reader.GetString(14)),
-                DatumPoslednihoNaskladneni  = reader.IsDBNull(15) ? null : DateTime.Parse(reader.GetString(15))
+                DatumPoslednihoNaskladneni  = reader.IsDBNull(15) ? null : DateTime.Parse(reader.GetString(15)),
+                DatumExpirace               = reader.IsDBNull(16) ? null : DateTime.Parse(reader.GetString(16))
             });
         }
         return list;

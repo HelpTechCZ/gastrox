@@ -95,6 +95,8 @@ public class PohybyViewModel : ViewModelBase
     public ICommand TisknoutPrijemkuCommand { get; }
     public ICommand TisknoutVydejkuCommand { get; }
     public ICommand TisknoutPrevodkuCommand { get; }
+    public ICommand ExportPrijemkyExcelCommand { get; }
+    public ICommand ExportVydejkyExcelCommand { get; }
 
     // ---- Init ----
 
@@ -107,6 +109,8 @@ public class PohybyViewModel : ViewModelBase
         TisknoutPrijemkuCommand = new RelayCommand(_ => TisknoutPrijemku(), _ => VybranaPrijemka is not null);
         TisknoutVydejkuCommand  = new RelayCommand(_ => TisknoutVydejku(),  _ => VybranaVydejka  is not null);
         TisknoutPrevodkuCommand = new RelayCommand(_ => TisknoutPrevodku(), _ => VybranaPrevodka is not null);
+        ExportPrijemkyExcelCommand = new RelayCommand(_ => ExportPrijemkyExcel(), _ => Prijemky.Count > 0);
+        ExportVydejkyExcelCommand  = new RelayCommand(_ => ExportVydejkyExcel(),  _ => Vydejky.Count > 0);
 
         Refresh();
     }
@@ -173,6 +177,36 @@ public class PohybyViewModel : ViewModelBase
         catch (Exception ex)
         {
             MessageBox.Show("Chyba při generování PDF:\n" + ex.Message, "Chyba",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void ExportPrijemkyExcel()
+    {
+        try
+        {
+            var path = ExcelService.ExportPrijemky(Prijemky);
+            MessageBox.Show($"Export uložen:\n{path}", "Excel export",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Chyba při exportu:\n" + ex.Message, "Chyba",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void ExportVydejkyExcel()
+    {
+        try
+        {
+            var path = ExcelService.ExportVydejky(Vydejky);
+            MessageBox.Show($"Export uložen:\n{path}", "Excel export",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Chyba při exportu:\n" + ex.Message, "Chyba",
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
