@@ -39,6 +39,13 @@
                       HeadersVisibility="Column"
                       GridLinesVisibility="Horizontal"
                       RowHeight="36">
+                <DataGrid.Resources>
+                    <Style x:Key="NumericCell" TargetType="TextBlock">
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="TextAlignment" Value="Right"/>
+                        <Setter Property="Margin" Value="0,0,8,0"/>
+                    </Style>
+                </DataGrid.Resources>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Zboží" Binding="{Binding Nazev}" Width="2*"/>
                     <DataGridTextColumn Header="Kategorie" Binding="{Binding Kategorie}" Width="*"/>

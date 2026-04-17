@@ -88,14 +88,17 @@ public partial class MainWindow : Window
                 MessageBoxButton.YesNo, MessageBoxImage.Information);
             if (res != MessageBoxResult.Yes) return;
 
-            var dir = await UpdateService.DownloadAndPrepareAsync(info);
-            UpdateService.LaunchUpdaterAndExit(dir);
+            var file = await UpdateService.DownloadAndPrepareAsync(info);
+            UpdateService.LaunchUpdaterAndExit(file);
             _skipBackup = true;
             Application.Current.Shutdown();
         }
-        catch
+        catch (Exception ex)
         {
-            // Aktualizace nesmí blokovat start aplikace
+            // Logovat, ale neblokovat start
+            System.Diagnostics.Debug.WriteLine($"Auto-update failed: {ex}");
+            MessageBox.Show("Automatická aktualizace se nezdařila:\n" + ex.Message,
+                "Aktualizace", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 

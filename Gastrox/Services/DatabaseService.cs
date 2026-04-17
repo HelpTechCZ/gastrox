@@ -154,7 +154,16 @@ public static class DatabaseService
                        CASE WHEN k.Typ_Baleni IS NULL OR trim(k.Typ_Baleni) = '' THEN 'Výchozí' ELSE k.Typ_Baleni END,
                        k.Koeficient_Prepoctu, k.Nakupni_Cena_Bez_DPH, 1, 1, 10
                   FROM SkladovaKarta k
-                 WHERE NOT EXISTS (SELECT 1 FROM BaleniKarty b WHERE b.SkladovaKarta_Id = k.Id);";
+                 WHERE NOT EXISTS (SELECT 1 FROM BaleniKarty b WHERE b.SkladovaKarta_Id = k.Id);
+
+                CREATE TABLE IF NOT EXISTS Rozpracovano (
+                    Id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                    Typ       TEXT NOT NULL,
+                    Nazev     TEXT NOT NULL,
+                    Data      TEXT NOT NULL,
+                    Vytvoreno TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    Upraveno  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );";
             ct.ExecuteNonQuery();
         }
     }
