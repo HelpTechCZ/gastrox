@@ -10,6 +10,13 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.14.2] — 2026-04-17
+
+### Vylepšeno
+- **Informace o licenci v bočním panelu** — pod nastavením se zobrazuje „Gastrox v…", posledních 8 znaků licenčního klíče a na druhém řádku „platná ještě X dní" (zelená >30 dní, červená ≤30 dní / vypršela). DEMO verze zobrazí červený text.
+
+---
+
 ## [0.14.1] — 2026-04-17
 
 ### Vylepšeno

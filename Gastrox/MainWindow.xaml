@@ -52,8 +52,9 @@
 
                 <StackPanel DockPanel.Dock="Bottom">
                     <Button Content="⚙ Nastavení" Style="{StaticResource MenuButton}" Click="Nastaveni_Click"/>
-                    <TextBlock x:Name="TxtVerze" Foreground="#888" FontSize="11" Margin="14,10,14,0"/>
-                    <TextBlock x:Name="TxtLicence" Foreground="#888" FontSize="11" Margin="14,2,14,8"/>
+                    <TextBlock x:Name="TxtVerze" Foreground="#666" FontSize="11" Margin="14,12,14,0"/>
+                    <TextBlock x:Name="TxtLicenceKlic" Foreground="#666" FontSize="10" Margin="14,4,14,0"/>
+                    <TextBlock x:Name="TxtLicenceStav" FontSize="10" Margin="14,2,14,10"/>
                 </StackPanel>
 
                 <StackPanel>

@@ -26,28 +26,45 @@ public partial class MainWindow : Window
 
     private void UpdateStatusBar()
     {
-        TxtVerze.Text = $"v{UpdateService.CurrentVersion}";
+        TxtVerze.Text = $"Gastrox v{UpdateService.CurrentVersion}";
 
         var lic = LicenseService.Current;
+        var n = DatabaseService.LoadNastaveni();
+        var licKey = n.TryGetValue("license.key", out var k) ? k : null;
+
         if (lic is null || !lic.IsValid)
         {
-            TxtLicence.Text = "DEMO verze";
-            TxtLicence.Foreground = new System.Windows.Media.SolidColorBrush(
+            TxtLicenceKlic.Text = "DEMO verze";
+            TxtLicenceKlic.Foreground = new System.Windows.Media.SolidColorBrush(
                 System.Windows.Media.Color.FromRgb(0xd1, 0x34, 0x38));
-        }
-        else if (!string.IsNullOrEmpty(lic.Expires) && DateTime.TryParse(lic.Expires, out var exp))
-        {
-            var days = (int)Math.Ceiling((exp - DateTime.Now).TotalDays);
-            TxtLicence.Text = days > 0
-                ? $"Licence: {exp:dd.MM.yyyy} ({days} dní)"
-                : "Licence vypršela";
-            TxtLicence.Foreground = new System.Windows.Media.SolidColorBrush(
-                days > 30 ? System.Windows.Media.Color.FromRgb(0x88, 0x88, 0x88)
-                           : System.Windows.Media.Color.FromRgb(0xd1, 0x34, 0x38));
+            TxtLicenceStav.Text = string.Empty;
         }
         else
         {
-            TxtLicence.Text = "Licence: aktivní";
+            // Posledních 8 znaků licenčního klíče
+            var suffix = !string.IsNullOrEmpty(licKey) && licKey!.Length >= 8
+                ? $"Licence: ...{licKey[^8..]}"
+                : "Licence: aktivní";
+            TxtLicenceKlic.Text = suffix;
+            TxtLicenceKlic.Foreground = new System.Windows.Media.SolidColorBrush(
+                System.Windows.Media.Color.FromRgb(0x66, 0x66, 0x66));
+
+            if (!string.IsNullOrEmpty(lic.Expires) && DateTime.TryParse(lic.Expires, out var exp))
+            {
+                var days = (int)Math.Ceiling((exp - DateTime.Now).TotalDays);
+                TxtLicenceStav.Text = days > 0
+                    ? $"platná ještě {days} dní"
+                    : "licence vypršela";
+                TxtLicenceStav.Foreground = new System.Windows.Media.SolidColorBrush(
+                    days > 30 ? System.Windows.Media.Color.FromRgb(0x10, 0x7C, 0x10)
+                               : System.Windows.Media.Color.FromRgb(0xd1, 0x34, 0x38));
+            }
+            else
+            {
+                TxtLicenceStav.Text = "platná (bez omezení)";
+                TxtLicenceStav.Foreground = new System.Windows.Media.SolidColorBrush(
+                    System.Windows.Media.Color.FromRgb(0x10, 0x7C, 0x10));
+            }
         }
     }
 
