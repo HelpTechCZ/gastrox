@@ -69,6 +69,7 @@ public class PrevodWizardViewModel : ViewModelBase
     public ICommand UlozitCommand { get; }
 
     public event Action? Hotovo;
+    public event Action? RadekPridan;
 
     public PrevodWizardViewModel()
     {
@@ -123,6 +124,7 @@ public class PrevodWizardViewModel : ViewModelBase
         var r = new PrevodRadekViewModel();
         r.PropertyChanged += RadekZmenen;
         Radky.Add(r);
+        RadekPridan?.Invoke();
     }
 
     private void RadekZmenen(object? sender, PropertyChangedEventArgs e)

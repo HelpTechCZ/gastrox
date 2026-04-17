@@ -66,18 +66,22 @@
                               HeadersVisibility="Column"
                               RowHeight="34">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Zboží" Binding="{Binding NazevZbozi}" IsReadOnly="True" Width="2*"/>
-                            <DataGridTextColumn Header="EJ" Binding="{Binding EvidencniJednotka}" IsReadOnly="True" Width="60"/>
+                            <DataGridTextColumn Header="Zboží" Binding="{Binding NazevZbozi}" IsReadOnly="True" Width="2*"
+                                                CellStyle="{StaticResource ReadOnlyCellStyle}"/>
+                            <DataGridTextColumn Header="EJ" Binding="{Binding EvidencniJednotka}" IsReadOnly="True" Width="60"
+                                                CellStyle="{StaticResource ReadOnlyCellStyle}"/>
                             <DataGridTextColumn Header="Teoretický stav"
                                                 Binding="{Binding TeoretickyStav, StringFormat=N2}"
-                                                IsReadOnly="True" Width="*"/>
+                                                IsReadOnly="True" Width="*"
+                                                CellStyle="{StaticResource ReadOnlyCellStyle}"/>
                             <DataGridTextColumn Header="Fyzický stav"
                                                 Binding="{Binding FyzickyStav, StringFormat=N2}"
                                                 EditingElementStyle="{StaticResource NumericTextBox}"
                                                 Width="*"/>
                             <DataGridTextColumn Header="Rozdíl"
                                                 Binding="{Binding Rozdil, StringFormat=N2}"
-                                                IsReadOnly="True" Width="*"/>
+                                                IsReadOnly="True" Width="*"
+                                                CellStyle="{StaticResource ReadOnlyCellStyle}"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -122,6 +126,7 @@
                         Command="{Binding DalsiCommand}"
                         Padding="18,8" Background="#0078D4" Foreground="White"
                         BorderThickness="0" FontWeight="SemiBold"
+                        ClickMode="Press"
                         Visibility="{Binding JeKrok3, Converter={StaticResource BoolToInverseVisConv}}"/>
                 <Button Content="Uložit rozpracovanou"
                         Command="{Binding UlozitRozpracovanouCommand}"

@@ -65,6 +65,7 @@ public class NaskladnitWizardViewModel : ViewModelBase
     public ICommand UlozitCommand { get; }
 
     public event Action? Hotovo;
+    public event Action? RadekPridan;
 
     public NaskladnitWizardViewModel()
     {
@@ -122,6 +123,7 @@ public class NaskladnitWizardViewModel : ViewModelBase
         var r = new PrijemkaRadekViewModel(DostupneSazby);
         r.PropertyChanged += RadekZmenen;
         Radky.Add(r);
+        RadekPridan?.Invoke();
     }
 
     private void RadekZmenen(object? sender, PropertyChangedEventArgs e)

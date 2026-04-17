@@ -10,6 +10,16 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.13.1] — 2026-04-17
+
+### Vylepšeno
+- **Tab přeskakuje read-only sloupce** — po výběru zboží Tab skočí rovnou na pole Množství (výdejka, převodka, inventura). Read-only sloupce (Stav, EJ, Teoretický stav, Rozdíl) jsou přeskočeny.
+- **Read-only sloupce nemají modré podsvícení** — modře se zvýrazňují pouze editovatelné buňky, takže je okamžitě vidět, kam psát.
+- **Tlačítko „Další" a „Uložit" reaguje na první klik** — i z editačního režimu DataGridu (ClickMode=Press). Není potřeba nejdřív kliknout mimo buňku.
+- **„+ Přidat" auto-scrolluje na nový řádek** — nová položka se vždy zobrazí a vybere (DataGrid), resp. ScrollViewer sjede na konec (příjemka s kartami).
+
+---
+
 ## [0.13.0] — 2026-04-16
 
 ### Přidáno

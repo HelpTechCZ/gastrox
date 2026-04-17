@@ -75,7 +75,7 @@
                                 Margin="16,0,0,0" Padding="10,6"/>
                     </StackPanel>
 
-                    <DataGrid Grid.Row="1"
+                    <DataGrid x:Name="GridPolozky" Grid.Row="1"
                               ItemsSource="{Binding Radky}"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
@@ -98,10 +98,12 @@
 
                             <DataGridTextColumn Header="Stav"
                                                 Binding="{Binding StavNaSkladu, StringFormat=N2}"
-                                                IsReadOnly="True" Width="*"/>
+                                                IsReadOnly="True" Width="*"
+                                                CellStyle="{StaticResource ReadOnlyCellStyle}"/>
                             <DataGridTextColumn Header="EJ"
                                                 Binding="{Binding EvidencniJednotka}"
-                                                IsReadOnly="True" Width="60"/>
+                                                IsReadOnly="True" Width="60"
+                                                CellStyle="{StaticResource ReadOnlyCellStyle}"/>
                             <DataGridTextColumn Header="Množství k výdeji"
                                                 Binding="{Binding MnozstviEvidencni, StringFormat=N2}"
                                                 EditingElementStyle="{StaticResource NumericTextBox}"
@@ -176,11 +178,13 @@
                         Command="{Binding DalsiCommand}"
                         Padding="18,8" Background="#0078D4" Foreground="White"
                         BorderThickness="0" FontWeight="SemiBold"
+                        ClickMode="Press"
                         Visibility="{Binding JeKrok3, Converter={StaticResource BoolToInverseVisConv}}"/>
                 <Button Content="✓ Uložit výdejku"
                         Command="{Binding UlozitCommand}"
                         Padding="18,8" Background="#107C10" Foreground="White"
                         BorderThickness="0" FontWeight="SemiBold"
+                        ClickMode="Press"
                         Visibility="{Binding JeKrok3, Converter={StaticResource BoolToVisConv}}"/>
             </StackPanel>
         </Grid>

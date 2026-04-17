@@ -88,7 +88,7 @@
                                 BorderThickness="0" FontWeight="SemiBold" Cursor="Hand"/>
                     </StackPanel>
 
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer x:Name="ScrollPolozky" Grid.Row="1" VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding Radky}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -275,11 +275,13 @@
                         Command="{Binding DalsiCommand}"
                         Padding="18,8" Background="#0078D4" Foreground="White"
                         BorderThickness="0" FontWeight="SemiBold"
+                        ClickMode="Press"
                         Visibility="{Binding JeKrok3, Converter={StaticResource BoolToInverseVisConv}}"/>
                 <Button Content="✓ Uložit příjemku"
                         Command="{Binding UlozitCommand}"
                         Padding="18,8" Background="#107C10" Foreground="White"
                         BorderThickness="0" FontWeight="SemiBold"
+                        ClickMode="Press"
                         Visibility="{Binding JeKrok3, Converter={StaticResource BoolToVisConv}}"/>
             </StackPanel>
         </Grid>
