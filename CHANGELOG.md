@@ -10,6 +10,14 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.14.1] — 2026-04-17
+
+### Vylepšeno
+- **Jedna záloha při aktualizaci** — při spuštění aktualizace se záloha při zavření přeskočí (installer restartuje aplikaci, takže by vznikly dvě zálohy zbytečně). Navíc ochrana proti duplicitní záloze v rámci 60 s.
+- **Okno zálohy se zavře samo po 5 s** — místo MessageBoxu, který vyžaduje kliknutí, se zobrazí malé okno s informací o záloze, které se automaticky zavře po 5 sekundách.
+
+---
+
 ## [0.14.0] — 2026-04-17
 
 ### Přidáno

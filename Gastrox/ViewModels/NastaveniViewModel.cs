@@ -326,6 +326,7 @@ public class NastaveniViewModel : ViewModelBase
             {
                 var dir = await UpdateService.DownloadAndPrepareAsync(info);
                 UpdateService.LaunchUpdaterAndExit(dir);
+                (Application.Current.MainWindow as MainWindow)?.SkipBackupOnClose();
                 Application.Current.Shutdown();
             }
             catch (Exception ex)

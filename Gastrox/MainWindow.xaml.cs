@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Threading;
 using Gastrox.Models;
 using Gastrox.Services;
 using Gastrox.Views;
@@ -11,6 +12,11 @@ namespace Gastrox;
 
 public partial class MainWindow : Window
 {
+    private bool _skipBackup;
+
+    /// <summary>Nastaví přeskočení zálohy při zavření (volá se před Shutdown z update flow).</summary>
+    public void SkipBackupOnClose() => _skipBackup = true;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -67,6 +73,7 @@ public partial class MainWindow : Window
 
             var dir = await UpdateService.DownloadAndPrepareAsync(info);
             UpdateService.LaunchUpdaterAndExit(dir);
+            _skipBackup = true;
             Application.Current.Shutdown();
         }
         catch
@@ -123,6 +130,8 @@ public partial class MainWindow : Window
 
     private void Window_Closing(object sender, CancelEventArgs e)
     {
+        if (_skipBackup) return;
+
         try
         {
             var dbPath = DatabaseService.DbPath;
@@ -130,6 +139,12 @@ public partial class MainWindow : Window
 
             var backupDir = Path.Combine(AppContext.BaseDirectory, "backup");
             Directory.CreateDirectory(backupDir);
+
+            // Přeskočit, pokud záloha z posledních 60 s již existuje
+            var recent = Directory.GetFiles(backupDir, "backup_*.db")
+                .Select(f => new FileInfo(f))
+                .Any(fi => (DateTime.Now - fi.CreationTime).TotalSeconds < 60);
+            if (recent) return;
 
             var fileName = $"backup_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.db";
             var fullPath = Path.Combine(backupDir, fileName);
@@ -142,14 +157,31 @@ public partial class MainWindow : Window
                 .ToArray();
             foreach (var f in old) File.Delete(f);
 
-            MessageBox.Show(
-                $"Záloha databáze byla vytvořena.\n\n{fileName}",
-                "Záloha hotova", MessageBoxButton.OK, MessageBoxImage.Information);
+            // Okno s informací o záloze – zavře se samo po 5 s
+            var win = new Window
+            {
+                Title = "Záloha hotova",
+                Width = 360, Height = 140,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStyle = WindowStyle.ToolWindow,
+                Topmost = true,
+                Content = new System.Windows.Controls.TextBlock
+                {
+                    Text = $"Záloha databáze byla vytvořena.\n{fileName}",
+                    Margin = new Thickness(20, 20, 20, 20),
+                    TextWrapping = TextWrapping.Wrap,
+                    FontSize = 13
+                }
+            };
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+            timer.Tick += (_, _) => { timer.Stop(); win.Close(); };
+            timer.Start();
+            win.ShowDialog();
         }
-        catch (Exception ex)
+        catch
         {
-            MessageBox.Show("Záloha se nepodařila:\n" + ex.Message,
-                "Chyba zálohy", MessageBoxButton.OK, MessageBoxImage.Warning);
+            // Záloha nesmí blokovat zavření aplikace
         }
     }
 
