@@ -158,7 +158,9 @@ CREATE TABLE IF NOT EXISTS VydejkaRadek (
     SkladovaKarta_Id     INTEGER NOT NULL,
     Mnozstvi_Evidencni   REAL    NOT NULL,        -- vždy se ukládá v evid. jednotkách
     Pocet_Baleni_Info    REAL,                    -- informativně (pokud byl zadán jako balení)
-    Nakupni_Cena_Bez_DPH REAL,                    -- snímek ceny (pro reporting odpisů)
+    Nakupni_Cena_Bez_DPH REAL,                    -- snímek nákupní ceny za EJ bez DPH
+    Prodejni_Cena_S_DPH  REAL,                    -- snímek prodejní ceny za EJ s DPH
+    Sazba_DPH            REAL NOT NULL DEFAULT 21, -- sazba DPH v okamžiku výdeje
     FOREIGN KEY (Vydejka_Id)       REFERENCES Vydejka(Id)       ON DELETE CASCADE,
     FOREIGN KEY (SkladovaKarta_Id) REFERENCES SkladovaKarta(Id) ON DELETE RESTRICT
 );
@@ -264,6 +266,18 @@ CREATE TABLE IF NOT EXISTS PrevodkaRadek (
 
 CREATE INDEX IF NOT EXISTS IX_PrevodkaRadek_Prevodka ON PrevodkaRadek(Prevodka_Id);
 CREATE INDEX IF NOT EXISTS IX_Prevodka_Datum          ON Prevodka(Datum_Prevodu);
+
+-- ---------------------------------------------------------------------
+-- ROZPRACOVANÉ DOKLADY (draft příjemek, výdejek, převodek)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS Rozpracovano (
+    Id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    Typ       TEXT NOT NULL,                        -- 'Prijemka', 'Vydejka', 'Prevodka'
+    Nazev     TEXT NOT NULL,                        -- zobrazovaný název (= číslo dokladu)
+    Data      TEXT NOT NULL,                        -- JSON stav celého wizardu
+    Vytvoreno TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Upraveno  TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 -- ---------------------------------------------------------------------
 -- NASTAVENÍ (key/value: údaje o firmě, konfigurace aktualizací, …)

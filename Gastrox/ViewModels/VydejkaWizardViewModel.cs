@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using Gastrox.Commands;
@@ -56,12 +57,20 @@ public class VydejkaWizardViewModel : ViewModelBase
     private string? _poznamka;
     public string? Poznamka { get => _poznamka; set => SetProperty(ref _poznamka, value); }
 
+    // ---------- Rozpracované ----------
+    public ObservableCollection<Rozpracovano> Rozpracovane { get; } = new();
+    public bool MaRozpracovane => Rozpracovane.Count > 0;
+    private int _rozpracovanoId;
+
     // ---------- Commands ----------
     public ICommand DalsiCommand { get; }
     public ICommand ZpetCommand { get; }
     public ICommand PridatRadekCommand { get; }
     public ICommand OdebratRadekCommand { get; }
     public ICommand UlozitCommand { get; }
+    public ICommand UlozitRozpracovaneCommand { get; }
+    public ICommand PokracovatVRozpracovanemCommand { get; }
+    public ICommand SmazatRozpracovaneCommand { get; }
 
     public event Action? Hotovo;
     public event Action? RadekPridan;
@@ -74,15 +83,42 @@ public class VydejkaWizardViewModel : ViewModelBase
         DostupneZbozi = new ObservableCollection<SkladovaKarta>();
         NacistZboziProSklad();
 
-        Radky.CollectionChanged += (_, __) => OnPropertyChanged(nameof(MuzeUlozit));
+        Radky.CollectionChanged += (_, __) =>
+        {
+            OnPropertyChanged(nameof(MuzeUlozit));
+            NotifyCelkem();
+        };
 
         DalsiCommand = new RelayCommand(_ => Krok++, _ => MuzeDalsi());
         ZpetCommand  = new RelayCommand(_ => Krok--, _ => Krok > 1);
         PridatRadekCommand  = new RelayCommand(_ => PridejRadek());
         OdebratRadekCommand = new RelayCommand(p => { if (p is VydejkaRadekViewModel r) Radky.Remove(r); });
         UlozitCommand = new RelayCommand(_ => Uloz(), _ => MuzeUlozit);
+        UlozitRozpracovaneCommand = new RelayCommand(_ => UlozRozpracovane());
+        PokracovatVRozpracovanemCommand = new RelayCommand(p =>
+        {
+            if (p is Rozpracovano roz) NacistZRozpracovaneho(roz);
+        });
+        SmazatRozpracovaneCommand = new RelayCommand(p =>
+        {
+            if (p is Rozpracovano roz)
+            {
+                DatabaseService.DeleteRozpracovano(roz.Id);
+                Rozpracovane.Remove(roz);
+                OnPropertyChanged(nameof(MaRozpracovane));
+            }
+        });
 
+        NacistRozpracovane();
         PridejRadek();
+    }
+
+    private void NacistRozpracovane()
+    {
+        Rozpracovane.Clear();
+        foreach (var r in DatabaseService.LoadRozpracovane("Vydejka"))
+            Rozpracovane.Add(r);
+        OnPropertyChanged(nameof(MaRozpracovane));
     }
 
     private void NotifyKrok()
@@ -113,6 +149,12 @@ public class VydejkaWizardViewModel : ViewModelBase
 
     public bool MuzeUlozit => Krok == 3 && Radky.Count > 0 && Radky.All(r => r.JeMnozstviPlatne);
 
+    // ---- cenové součty ----
+    public decimal CelkemNakupBezDPH  => Radky.Sum(r => r.HodnotaNakupBezDPH);
+    public decimal CelkemNakupSDPH    => Radky.Sum(r => r.HodnotaNakupSDPH);
+    public decimal CelkemProdejBezDPH => Radky.Sum(r => r.HodnotaProdejBezDPH);
+    public decimal CelkemProdejSDPH   => Radky.Sum(r => r.HodnotaProdejSDPH);
+
     private void PridejRadek()
     {
         var r = new VydejkaRadekViewModel();
@@ -124,8 +166,99 @@ public class VydejkaWizardViewModel : ViewModelBase
     private void RadekZmenen(object? sender, PropertyChangedEventArgs e)
     {
         OnPropertyChanged(nameof(MuzeUlozit));
+        NotifyCelkem();
         CommandManager.InvalidateRequerySuggested();
     }
+
+    private void NotifyCelkem()
+    {
+        OnPropertyChanged(nameof(CelkemNakupBezDPH));
+        OnPropertyChanged(nameof(CelkemNakupSDPH));
+        OnPropertyChanged(nameof(CelkemProdejBezDPH));
+        OnPropertyChanged(nameof(CelkemProdejSDPH));
+    }
+
+    // ---------- Rozpracované ----------
+
+    private void UlozRozpracovane()
+    {
+        var dto = new VydejkaDraftDto(
+            Krok,
+            VybranySklad?.Id,
+            TypVydeje.ToString(),
+            Stredisko.ToString(),
+            Poznamka,
+            Radky.Select(r => new VydejkaRadekDraftDto(
+                r.VybraneZbozi?.Id,
+                r.MnozstviEvidencni
+            )).ToList()
+        );
+
+        var json = JsonSerializer.Serialize(dto);
+        var roz = new Rozpracovano
+        {
+            Id    = _rozpracovanoId,
+            Typ   = "Vydejka",
+            Nazev = $"Výdejka – {TypVydeje} ({Stredisko})",
+            Data  = json
+        };
+        _rozpracovanoId = DatabaseService.SaveRozpracovano(roz);
+
+        MessageBox.Show("Rozpracovaná výdejka uložena.\nMůžete se k ní vrátit kdykoliv.",
+            "Uloženo", MessageBoxButton.OK, MessageBoxImage.Information);
+
+        Hotovo?.Invoke();
+    }
+
+    private void NacistZRozpracovaneho(Rozpracovano roz)
+    {
+        try
+        {
+            var dto = JsonSerializer.Deserialize<VydejkaDraftDto>(roz.Data);
+            if (dto is null) return;
+
+            _rozpracovanoId = roz.Id;
+            Poznamka = dto.Poznamka;
+
+            if (Enum.TryParse<TypVydeje>(dto.TypVydeje, out var tv))  TypVydeje = tv;
+            if (Enum.TryParse<Stredisko>(dto.Stredisko, out var st))  Stredisko = st;
+
+            if (dto.SkladId is int sid)
+            {
+                VybranySklad = Sklady.FirstOrDefault(s => s.Id == sid) ?? VybranySklad;
+            }
+
+            foreach (var r in Radky) r.PropertyChanged -= RadekZmenen;
+            Radky.Clear();
+
+            foreach (var rd in dto.Radky)
+            {
+                var r = new VydejkaRadekViewModel();
+                r.PropertyChanged += RadekZmenen;
+
+                if (rd.ZboziId is int zid)
+                    r.VybraneZbozi = DostupneZbozi.FirstOrDefault(z => z.Id == zid);
+
+                r.MnozstviEvidencni = rd.MnozstviEvidencni;
+                Radky.Add(r);
+            }
+
+            if (Radky.Count == 0)
+                PridejRadek();
+
+            Krok = Math.Clamp(dto.Krok, 1, 2);
+
+            Rozpracovane.Clear();
+            OnPropertyChanged(nameof(MaRozpracovane));
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Nepodařilo se načíst rozpracovaný doklad:\n" + ex.Message,
+                "Chyba", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    // ---------- Finální uložení ----------
 
     private void Uloz()
     {
@@ -144,6 +277,9 @@ public class VydejkaWizardViewModel : ViewModelBase
         try
         {
             DatabaseService.SaveVydejka(v);
+
+            if (_rozpracovanoId > 0)
+                DatabaseService.DeleteRozpracovano(_rozpracovanoId);
 
             var odpoved = MessageBox.Show(
                 $"Výdejka uložena: {v.CisloDokladu}\n\nVygenerovat PDF doklad?",

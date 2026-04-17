@@ -70,15 +70,22 @@ public class VydejkaRadek
     /// <summary>Informativně – pokud uživatel zadal v baleních.</summary>
     public decimal? PocetBaleniInfo { get; set; }
 
-    /// <summary>Snímek nákupní ceny v okamžiku výdeje (pro reporting odpisů).</summary>
+    /// <summary>Snímek nákupní ceny za EJ v okamžiku výdeje.</summary>
     public decimal? NakupniCenaBezDPH { get; set; }
 
-    /// <summary>Sazba DPH převzatá z karty v okamžiku výdeje (pro DPH sumář na PDF).</summary>
+    /// <summary>Snímek prodejní ceny za EJ s DPH v okamžiku výdeje.</summary>
+    public decimal? ProdejniCenaSDPH { get; set; }
+
+    /// <summary>Sazba DPH převzatá z karty v okamžiku výdeje.</summary>
     public decimal SazbaDPH { get; set; } = 21m;
 
-    /// <summary>Hodnota řádku v nákupní ceně bez DPH.</summary>
+    // ---- nákupní hodnoty ----
     public decimal HodnotaBezDPH => (NakupniCenaBezDPH ?? 0m) * MnozstviEvidencni;
-
-    /// <summary>Hodnota řádku včetně DPH (vypočteno ze sazby).</summary>
     public decimal HodnotaSDPH => HodnotaBezDPH * (1 + SazbaDPH / 100m);
+
+    // ---- prodejní hodnoty ----
+    public decimal HodnotaProdejSDPH => (ProdejniCenaSDPH ?? 0m) * MnozstviEvidencni;
+    public decimal HodnotaProdejBezDPH => SazbaDPH > 0
+        ? HodnotaProdejSDPH / (1 + SazbaDPH / 100m)
+        : HodnotaProdejSDPH;
 }

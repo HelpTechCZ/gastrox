@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using Gastrox.Commands;
@@ -62,11 +63,20 @@ public class PrevodWizardViewModel : ViewModelBase
         }
     }
 
+    // ---------- Rozpracované ----------
+    public ObservableCollection<Rozpracovano> Rozpracovane { get; } = new();
+    public bool MaRozpracovane => Rozpracovane.Count > 0;
+    private int _rozpracovanoId;
+
+    // ---------- Commands ----------
     public ICommand DalsiCommand { get; }
     public ICommand ZpetCommand { get; }
     public ICommand PridatRadekCommand { get; }
     public ICommand OdebratRadekCommand { get; }
     public ICommand UlozitCommand { get; }
+    public ICommand UlozitRozpracovaneCommand { get; }
+    public ICommand PokracovatVRozpracovanemCommand { get; }
+    public ICommand SmazatRozpracovaneCommand { get; }
 
     public event Action? Hotovo;
     public event Action? RadekPridan;
@@ -86,8 +96,31 @@ public class PrevodWizardViewModel : ViewModelBase
         PridatRadekCommand  = new RelayCommand(_ => PridejRadek());
         OdebratRadekCommand = new RelayCommand(p => { if (p is PrevodRadekViewModel r) Radky.Remove(r); });
         UlozitCommand = new RelayCommand(_ => Uloz(), _ => MuzeUlozit);
+        UlozitRozpracovaneCommand = new RelayCommand(_ => UlozRozpracovane());
+        PokracovatVRozpracovanemCommand = new RelayCommand(p =>
+        {
+            if (p is Rozpracovano roz) NacistZRozpracovaneho(roz);
+        });
+        SmazatRozpracovaneCommand = new RelayCommand(p =>
+        {
+            if (p is Rozpracovano roz)
+            {
+                DatabaseService.DeleteRozpracovano(roz.Id);
+                Rozpracovane.Remove(roz);
+                OnPropertyChanged(nameof(MaRozpracovane));
+            }
+        });
 
+        NacistRozpracovane();
         PridejRadek();
+    }
+
+    private void NacistRozpracovane()
+    {
+        Rozpracovane.Clear();
+        foreach (var r in DatabaseService.LoadRozpracovane("Prevodka"))
+            Rozpracovane.Add(r);
+        OnPropertyChanged(nameof(MaRozpracovane));
     }
 
     private void NotifyKrok()
@@ -133,6 +166,85 @@ public class PrevodWizardViewModel : ViewModelBase
         CommandManager.InvalidateRequerySuggested();
     }
 
+    // ---------- Rozpracované ----------
+
+    private void UlozRozpracovane()
+    {
+        var dto = new PrevodkaDraftDto(
+            Krok, CisloDokladu, DatumPrevodu,
+            SkladZdroj?.Id, SkladCil?.Id,
+            Poznamka,
+            Radky.Select(r => new PrevodkaRadekDraftDto(
+                r.VybraneZbozi?.Id,
+                r.MnozstviEvidencni
+            )).ToList()
+        );
+
+        var json = JsonSerializer.Serialize(dto);
+        var roz = new Rozpracovano
+        {
+            Id    = _rozpracovanoId,
+            Typ   = "Prevodka",
+            Nazev = string.IsNullOrWhiteSpace(CisloDokladu) ? "Převodka" : CisloDokladu,
+            Data  = json
+        };
+        _rozpracovanoId = DatabaseService.SaveRozpracovano(roz);
+
+        MessageBox.Show("Rozpracovaná převodka uložena.\nMůžete se k ní vrátit kdykoliv.",
+            "Uloženo", MessageBoxButton.OK, MessageBoxImage.Information);
+
+        Hotovo?.Invoke();
+    }
+
+    private void NacistZRozpracovaneho(Rozpracovano roz)
+    {
+        try
+        {
+            var dto = JsonSerializer.Deserialize<PrevodkaDraftDto>(roz.Data);
+            if (dto is null) return;
+
+            _rozpracovanoId = roz.Id;
+            CisloDokladu = dto.CisloDokladu;
+            DatumPrevodu = dto.DatumPrevodu;
+            Poznamka     = dto.Poznamka;
+
+            if (dto.SkladZdrojId is int szid)
+                SkladZdroj = Sklady.FirstOrDefault(s => s.Id == szid) ?? SkladZdroj;
+            if (dto.SkladCilId is int scid)
+                SkladCil = Sklady.FirstOrDefault(s => s.Id == scid) ?? SkladCil;
+
+            foreach (var r in Radky) r.PropertyChanged -= RadekZmenen;
+            Radky.Clear();
+
+            foreach (var rd in dto.Radky)
+            {
+                var r = new PrevodRadekViewModel();
+                r.PropertyChanged += RadekZmenen;
+
+                if (rd.ZboziId is int zid)
+                    r.VybraneZbozi = DostupneZbozi.FirstOrDefault(z => z.Id == zid);
+
+                r.MnozstviEvidencni = rd.MnozstviEvidencni;
+                Radky.Add(r);
+            }
+
+            if (Radky.Count == 0)
+                PridejRadek();
+
+            Krok = Math.Clamp(dto.Krok, 1, 2);
+
+            Rozpracovane.Clear();
+            OnPropertyChanged(nameof(MaRozpracovane));
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Nepodařilo se načíst rozpracovaný doklad:\n" + ex.Message,
+                "Chyba", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    // ---------- Finální uložení ----------
+
     private void Uloz()
     {
         if (SkladZdroj is null || SkladCil is null) return;
@@ -152,6 +264,9 @@ public class PrevodWizardViewModel : ViewModelBase
         try
         {
             DatabaseService.SavePrevodka(p);
+
+            if (_rozpracovanoId > 0)
+                DatabaseService.DeleteRozpracovano(_rozpracovanoId);
 
             var odpoved = MessageBox.Show(
                 $"Převodka uložena: {p.CisloDokladu}\n\nVygenerovat PDF doklad?",

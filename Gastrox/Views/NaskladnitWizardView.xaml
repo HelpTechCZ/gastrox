@@ -37,6 +37,49 @@
             <Grid>
                 <!-- Krok 1 – hlavička -->
                 <StackPanel Visibility="{Binding JeKrok1, Converter={StaticResource BoolToVisConv}}">
+                    <!-- Rozpracované doklady -->
+                    <Border Background="#FFF8E1" BorderBrush="#FFD54F" BorderThickness="1"
+                            CornerRadius="8" Padding="14" Margin="0,0,0,16"
+                            Visibility="{Binding MaRozpracovane, Converter={StaticResource BoolToVisConv}}">
+                        <StackPanel>
+                            <TextBlock Text="Rozpracované příjemky" FontWeight="SemiBold" Foreground="#7B6B00" Margin="0,0,0,8"/>
+                            <ItemsControl ItemsSource="{Binding Rozpracovane}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="White" CornerRadius="6" Padding="10" Margin="0,0,0,6">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Nazev}" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding Upraveno, StringFormat='Uloženo: {0:d. M. yyyy H:mm}'}"
+                                                               Foreground="#888" FontSize="11"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Content="Pokračovat"
+                                                        Command="{Binding DataContext.PokracovatVRozpracovanemCommand,
+                                                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Padding="12,6" Margin="8,0,0,0"
+                                                        Background="#0078D4" Foreground="White"
+                                                        BorderThickness="0" Cursor="Hand"/>
+                                                <Button Grid.Column="2" Content="Smazat"
+                                                        Command="{Binding DataContext.SmazatRozpracovaneCommand,
+                                                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        Padding="12,6" Margin="8,0,0,0"
+                                                        Foreground="#D13438" Background="Transparent"
+                                                        BorderBrush="#D13438" BorderThickness="1" Cursor="Hand"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
                     <TextBlock Text="Údaje o dokladu" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
 
                     <Grid>
@@ -266,9 +309,17 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Button Grid.Column="0" Content="← Zpět"
-                    Command="{Binding ZpetCommand}"
-                    Padding="14,8"/>
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <Button Content="← Zpět"
+                        Command="{Binding ZpetCommand}"
+                        Padding="14,8"/>
+                <Button Content="Uložit rozpracované"
+                        Command="{Binding UlozitRozpracovaneCommand}"
+                        Padding="14,8" Margin="8,0,0,0"
+                        Foreground="#7B6B00" Background="#FFF8E1"
+                        BorderBrush="#FFD54F" BorderThickness="1" Cursor="Hand"
+                        Visibility="{Binding JeKrok3, Converter={StaticResource BoolToInverseVisConv}}"/>
+            </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal">
                 <Button Content="Další →"

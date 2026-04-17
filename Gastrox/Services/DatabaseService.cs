@@ -73,6 +73,9 @@ public static class DatabaseService
         AddColumnIfMissing("Uzaverka",      "Sklad_Id", "INTEGER");
         AddColumnIfMissing("PohybSkladu",   "Sklad_Id", $"INTEGER NOT NULL DEFAULT {defaultSkladId}");
 
+        AddColumnIfMissing("VydejkaRadek", "Prodejni_Cena_S_DPH", "REAL");
+        AddColumnIfMissing("VydejkaRadek", "Sazba_DPH",           "REAL NOT NULL DEFAULT 21");
+
         // Pojistka pro starší DB: pokud init.sql z nějakého důvodu neaplikoval
         // nové tabulky pro převody mezi sklady, vytvoříme je explicitně zde.
         using (var ct = conn.CreateCommand())
@@ -749,13 +752,16 @@ public static class DatabaseService
             cmdR.Transaction = tx;
             cmdR.CommandText = @"
                 INSERT INTO VydejkaRadek
-                    (Vydejka_Id, SkladovaKarta_Id, Mnozstvi_Evidencni, Pocet_Baleni_Info, Nakupni_Cena_Bez_DPH)
-                VALUES ($vid, $kid, $me, $pbi, $nc);";
-            cmdR.Parameters.AddWithValue("$vid", vydejkaId);
-            cmdR.Parameters.AddWithValue("$kid", r.SkladovaKartaId);
-            cmdR.Parameters.AddWithValue("$me",  (double)r.MnozstviEvidencni);
-            cmdR.Parameters.AddWithValue("$pbi", r.PocetBaleniInfo.HasValue ? (double)r.PocetBaleniInfo.Value : (object)DBNull.Value);
-            cmdR.Parameters.AddWithValue("$nc",  r.NakupniCenaBezDPH.HasValue ? (double)r.NakupniCenaBezDPH.Value : (object)DBNull.Value);
+                    (Vydejka_Id, SkladovaKarta_Id, Mnozstvi_Evidencni, Pocet_Baleni_Info,
+                     Nakupni_Cena_Bez_DPH, Prodejni_Cena_S_DPH, Sazba_DPH)
+                VALUES ($vid, $kid, $me, $pbi, $nc, $pc, $sdph);";
+            cmdR.Parameters.AddWithValue("$vid",  vydejkaId);
+            cmdR.Parameters.AddWithValue("$kid",  r.SkladovaKartaId);
+            cmdR.Parameters.AddWithValue("$me",   (double)r.MnozstviEvidencni);
+            cmdR.Parameters.AddWithValue("$pbi",  r.PocetBaleniInfo.HasValue ? (double)r.PocetBaleniInfo.Value : (object)DBNull.Value);
+            cmdR.Parameters.AddWithValue("$nc",   r.NakupniCenaBezDPH.HasValue ? (double)r.NakupniCenaBezDPH.Value : (object)DBNull.Value);
+            cmdR.Parameters.AddWithValue("$pc",   r.ProdejniCenaSDPH.HasValue ? (double)r.ProdejniCenaSDPH.Value : (object)DBNull.Value);
+            cmdR.Parameters.AddWithValue("$sdph", (double)r.SazbaDPH);
             cmdR.ExecuteNonQuery();
 
             // Aktualizace stavu ve zdrojovém skladu (záporná změna) + pohyb
@@ -881,6 +887,82 @@ public static class DatabaseService
         }
 
         tx.Commit();
+    }
+
+    // ----------------------------------------------------------------
+    // Rozpracované doklady (drafty)
+    // ----------------------------------------------------------------
+
+    public static List<Rozpracovano> LoadRozpracovane(string typ)
+    {
+        var list = new List<Rozpracovano>();
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            SELECT Id, Typ, Nazev, Data, Vytvoreno, Upraveno
+              FROM Rozpracovano
+             WHERE Typ = $typ
+             ORDER BY Upraveno DESC";
+        cmd.Parameters.AddWithValue("$typ", typ);
+        using var reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            list.Add(new Rozpracovano
+            {
+                Id        = reader.GetInt32(0),
+                Typ       = reader.GetString(1),
+                Nazev     = reader.GetString(2),
+                Data      = reader.GetString(3),
+                Vytvoreno = DateTime.Parse(reader.GetString(4)),
+                Upraveno  = DateTime.Parse(reader.GetString(5))
+            });
+        }
+        return list;
+    }
+
+    public static int SaveRozpracovano(Rozpracovano r)
+    {
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+
+        if (r.Id > 0)
+        {
+            cmd.CommandText = @"
+                UPDATE Rozpracovano SET Nazev = $naz, Data = $data, Upraveno = $upr
+                 WHERE Id = $id";
+            cmd.Parameters.AddWithValue("$id",   r.Id);
+            cmd.Parameters.AddWithValue("$naz",  r.Nazev);
+            cmd.Parameters.AddWithValue("$data", r.Data);
+            cmd.Parameters.AddWithValue("$upr",  DateTime.Now.ToString("o"));
+            cmd.ExecuteNonQuery();
+            return r.Id;
+        }
+        else
+        {
+            cmd.CommandText = @"
+                INSERT INTO Rozpracovano (Typ, Nazev, Data, Vytvoreno, Upraveno)
+                VALUES ($typ, $naz, $data, $vyt, $upr);
+                SELECT last_insert_rowid();";
+            cmd.Parameters.AddWithValue("$typ",  r.Typ);
+            cmd.Parameters.AddWithValue("$naz",  r.Nazev);
+            cmd.Parameters.AddWithValue("$data", r.Data);
+            var now = DateTime.Now.ToString("o");
+            cmd.Parameters.AddWithValue("$vyt", now);
+            cmd.Parameters.AddWithValue("$upr", now);
+            return Convert.ToInt32(cmd.ExecuteScalar()!);
+        }
+    }
+
+    public static void DeleteRozpracovano(int id)
+    {
+        using var conn = new SqliteConnection(ConnectionString);
+        conn.Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "DELETE FROM Rozpracovano WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$id", id);
+        cmd.ExecuteNonQuery();
     }
 
     // ----------------------------------------------------------------
@@ -1094,7 +1176,8 @@ public static class DatabaseService
         cmd.CommandText = @"
             SELECT vr.Id, vr.SkladovaKarta_Id, sk.Nazev,
                    vr.Mnozstvi_Evidencni, vr.Pocet_Baleni_Info,
-                   vr.Nakupni_Cena_Bez_DPH, sk.Evidencni_Jednotka, sk.Sazba_DPH
+                   vr.Nakupni_Cena_Bez_DPH, sk.Evidencni_Jednotka,
+                   vr.Sazba_DPH, vr.Prodejni_Cena_S_DPH
               FROM VydejkaRadek vr
               JOIN SkladovaKarta sk ON sk.Id = vr.SkladovaKarta_Id
              WHERE vr.Vydejka_Id = $vid
@@ -1113,7 +1196,8 @@ public static class DatabaseService
                 PocetBaleniInfo   = reader.IsDBNull(4) ? null : (decimal)reader.GetDouble(4),
                 NakupniCenaBezDPH = reader.IsDBNull(5) ? null : (decimal)reader.GetDouble(5),
                 EvidencniJednotka = reader.GetString(6),
-                SazbaDPH          = reader.IsDBNull(7) ? 21m : (decimal)reader.GetDouble(7)
+                SazbaDPH          = reader.IsDBNull(7) ? 21m : (decimal)reader.GetDouble(7),
+                ProdejniCenaSDPH  = reader.IsDBNull(8) ? null : (decimal)reader.GetDouble(8)
             });
         }
         return list;

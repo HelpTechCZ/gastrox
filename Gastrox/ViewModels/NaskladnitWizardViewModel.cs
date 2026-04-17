@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using Gastrox.Commands;
@@ -58,11 +59,20 @@ public class NaskladnitWizardViewModel : ViewModelBase
     public decimal CelkemBezDPH => Radky.Sum(r => r.CelkemBezDPH);
     public decimal CelkemSDPH   => Radky.Sum(r => r.CelkemSDPH);
 
+    // ---------- Rozpracované doklady ----------
+    public ObservableCollection<Rozpracovano> Rozpracovane { get; } = new();
+    public bool MaRozpracovane => Rozpracovane.Count > 0;
+    private int _rozpracovanoId;
+
+    // ---------- Commands ----------
     public ICommand DalsiCommand { get; }
     public ICommand ZpetCommand { get; }
     public ICommand PridatRadekCommand { get; }
     public ICommand OdebratRadekCommand { get; }
     public ICommand UlozitCommand { get; }
+    public ICommand UlozitRozpracovaneCommand { get; }
+    public ICommand PokracovatVRozpracovanemCommand { get; }
+    public ICommand SmazatRozpracovaneCommand { get; }
 
     public event Action? Hotovo;
     public event Action? RadekPridan;
@@ -96,8 +106,31 @@ public class NaskladnitWizardViewModel : ViewModelBase
             }
         });
         UlozitCommand = new RelayCommand(_ => Uloz(), _ => MuzeUlozit);
+        UlozitRozpracovaneCommand = new RelayCommand(_ => UlozRozpracovane());
+        PokracovatVRozpracovanemCommand = new RelayCommand(p =>
+        {
+            if (p is Rozpracovano roz) NacistZRozpracovaneho(roz);
+        });
+        SmazatRozpracovaneCommand = new RelayCommand(p =>
+        {
+            if (p is Rozpracovano roz)
+            {
+                DatabaseService.DeleteRozpracovano(roz.Id);
+                Rozpracovane.Remove(roz);
+                OnPropertyChanged(nameof(MaRozpracovane));
+            }
+        });
 
+        NacistRozpracovane();
         PridejRadek();
+    }
+
+    private void NacistRozpracovane()
+    {
+        Rozpracovane.Clear();
+        foreach (var r in DatabaseService.LoadRozpracovane("Prijemka"))
+            Rozpracovane.Add(r);
+        OnPropertyChanged(nameof(MaRozpracovane));
     }
 
     private void NotifyKrok()
@@ -137,6 +170,100 @@ public class NaskladnitWizardViewModel : ViewModelBase
         CommandManager.InvalidateRequerySuggested();
     }
 
+    // ---------- Rozpracované – serializace ----------
+
+    private void UlozRozpracovane()
+    {
+        var dto = new PrijemkaDraftDto(
+            Krok, CisloDokladu, DatumPrijeti,
+            VybranySklad?.Id,
+            Dodavatel, CisloFaktury, Poznamka,
+            Radky.Select(r => new PrijemkaRadekDraftDto(
+                r.VybraneZbozi?.Id,
+                r.VybraneBaleni?.Id,
+                r.PocetBaleni,
+                r.NakupniCenaBezDPH,
+                r.VybranaSazba?.Sazba
+            )).ToList()
+        );
+
+        var json = JsonSerializer.Serialize(dto);
+        var roz = new Rozpracovano
+        {
+            Id    = _rozpracovanoId,
+            Typ   = "Prijemka",
+            Nazev = string.IsNullOrWhiteSpace(CisloDokladu) ? "Příjemka" : CisloDokladu,
+            Data  = json
+        };
+        _rozpracovanoId = DatabaseService.SaveRozpracovano(roz);
+
+        MessageBox.Show("Rozpracovaná příjemka uložena.\nMůžete se k ní vrátit kdykoliv.",
+            "Uloženo", MessageBoxButton.OK, MessageBoxImage.Information);
+
+        Hotovo?.Invoke();
+    }
+
+    private void NacistZRozpracovaneho(Rozpracovano roz)
+    {
+        try
+        {
+            var dto = JsonSerializer.Deserialize<PrijemkaDraftDto>(roz.Data);
+            if (dto is null) return;
+
+            _rozpracovanoId = roz.Id;
+            CisloDokladu = dto.CisloDokladu;
+            DatumPrijeti = dto.DatumPrijeti;
+            Dodavatel    = dto.Dodavatel;
+            CisloFaktury = dto.CisloFaktury;
+            Poznamka     = dto.Poznamka;
+
+            if (dto.SkladId is int sid)
+                VybranySklad = Sklady.FirstOrDefault(s => s.Id == sid) ?? VybranySklad;
+
+            // Řádky
+            foreach (var r in Radky) r.PropertyChanged -= RadekZmenen;
+            Radky.Clear();
+
+            foreach (var rd in dto.Radky)
+            {
+                var r = new PrijemkaRadekViewModel(DostupneSazby);
+                r.PropertyChanged += RadekZmenen;
+
+                if (rd.ZboziId is int zid)
+                    r.VybraneZbozi = DostupneZbozi.FirstOrDefault(z => z.Id == zid);
+
+                if (rd.BaleniId is int bid && r.DostupnaBaleni.Count > 0)
+                    r.VybraneBaleni = r.DostupnaBaleni.FirstOrDefault(b => b.Id == bid) ?? r.VybraneBaleni;
+
+                r.PocetBaleni        = rd.PocetBaleni;
+                r.NakupniCenaBezDPH  = rd.NakupniCenaBezDPH;
+
+                if (rd.SazbaDPH is decimal sazba)
+                    r.VybranaSazba = DostupneSazby.FirstOrDefault(s => s.Sazba == sazba) ?? r.VybranaSazba;
+
+                Radky.Add(r);
+            }
+
+            if (Radky.Count == 0)
+                PridejRadek();
+
+            Krok = Math.Clamp(dto.Krok, 1, 2); // nikdy nenačítat přímo na souhrn
+            OnPropertyChanged(nameof(CelkemBezDPH));
+            OnPropertyChanged(nameof(CelkemSDPH));
+
+            // Skrýt panel rozpracovaných
+            Rozpracovane.Clear();
+            OnPropertyChanged(nameof(MaRozpracovane));
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Nepodařilo se načíst rozpracovaný doklad:\n" + ex.Message,
+                "Chyba", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    // ---------- Finální uložení ----------
+
     private void Uloz()
     {
         var p = new Prijemka
@@ -156,6 +283,10 @@ public class NaskladnitWizardViewModel : ViewModelBase
         try
         {
             DatabaseService.SavePrijemka(p);
+
+            // Smazat draft, pokud existuje
+            if (_rozpracovanoId > 0)
+                DatabaseService.DeleteRozpracovano(_rozpracovanoId);
 
             var odpoved = MessageBox.Show(
                 $"Příjemka uložena: {p.CisloDokladu}\n\nVygenerovat PDF doklad?",

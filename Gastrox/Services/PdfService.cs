@@ -253,32 +253,34 @@ public static class PdfService
                         table.ColumnsDefinition(cols =>
                         {
                             cols.RelativeColumn(3);
-                            cols.RelativeColumn(1.3f);
-                            cols.RelativeColumn(1.3f);
-                            cols.RelativeColumn(1.5f);
-                            cols.RelativeColumn(1.5f);
+                            cols.RelativeColumn(1.2f);
+                            cols.RelativeColumn(1.2f);
+                            cols.RelativeColumn(1.2f);
+                            cols.RelativeColumn(1.2f);
+                            cols.RelativeColumn(1.2f);
                         });
 
-                        var hdrStyle = TextStyle.Default.Bold().FontSize(8);
+                        var hdrStyle = TextStyle.Default.Bold().FontSize(7);
                         table.Header(h =>
                         {
                             h.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Zboží").Style(hdrStyle);
                             h.Cell().Background(Colors.Grey.Lighten3).Padding(5).AlignRight().Text("Množství (EJ)").Style(hdrStyle);
-                            h.Cell().Background(Colors.Grey.Lighten3).Padding(5).AlignRight().Text("Balení (info)").Style(hdrStyle);
-                            h.Cell().Background(Colors.Grey.Lighten3).Padding(5).AlignRight().Text("Nákup. cena/EJ").Style(hdrStyle);
-                            h.Cell().Background(Colors.Grey.Lighten3).Padding(5).AlignRight().Text("Hodnota bez DPH").Style(hdrStyle);
+                            h.Cell().Background(Colors.Grey.Lighten3).Padding(5).AlignRight().Text("Nákup bez DPH").Style(hdrStyle);
+                            h.Cell().Background(Colors.Grey.Lighten3).Padding(5).AlignRight().Text("Nákup s DPH").Style(hdrStyle);
+                            h.Cell().Background(Colors.Grey.Lighten3).Padding(5).AlignRight().Text("Prodej bez DPH").Style(hdrStyle);
+                            h.Cell().Background(Colors.Grey.Lighten3).Padding(5).AlignRight().Text("Prodej s DPH").Style(hdrStyle);
                         });
 
                         int idx = 0;
                         foreach (var r in radky)
                         {
                             var bg = idx++ % 2 == 1 ? Colors.Grey.Lighten4 : Colors.White;
-                            var hodnota = (r.NakupniCenaBezDPH ?? 0m) * r.MnozstviEvidencni;
                             table.Cell().Background(bg).Padding(5).Text(r.NazevZbozi);
                             table.Cell().Background(bg).Padding(5).AlignRight().Text($"{r.MnozstviEvidencni:N2} {r.EvidencniJednotka}");
-                            table.Cell().Background(bg).Padding(5).AlignRight().Text(r.PocetBaleniInfo.HasValue ? $"{r.PocetBaleniInfo:N2}" : "—");
-                            table.Cell().Background(bg).Padding(5).AlignRight().Text(cena(r.NakupniCenaBezDPH));
-                            table.Cell().Background(bg).Padding(5).AlignRight().Text(cena(hodnota));
+                            table.Cell().Background(bg).Padding(5).AlignRight().Text(cena(r.HodnotaBezDPH));
+                            table.Cell().Background(bg).Padding(5).AlignRight().Text(cena(r.HodnotaSDPH));
+                            table.Cell().Background(bg).Padding(5).AlignRight().Text(cena(r.HodnotaProdejBezDPH));
+                            table.Cell().Background(bg).Padding(5).AlignRight().Text(cena(r.HodnotaProdejSDPH));
                         }
                     });
 
@@ -294,49 +296,60 @@ public static class PdfService
                     col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
                     col.Item().PaddingTop(8).Text($"Položek: {radky.Count}").FontSize(8).Bold();
 
-                    // DPH sumář po sazbách
+                    // DPH sumář po sazbách – nákupní i prodejní
                     var dphSkupiny = radky
                         .GroupBy(r => r.SazbaDPH)
                         .Select(g => new
                         {
-                            Sazba  = g.Key,
-                            Zaklad = g.Sum(r => r.HodnotaBezDPH),
-                            Dan    = g.Sum(r => r.HodnotaSDPH - r.HodnotaBezDPH),
-                            Celkem = g.Sum(r => r.HodnotaSDPH)
+                            Sazba           = g.Key,
+                            NakupZaklad     = g.Sum(r => r.HodnotaBezDPH),
+                            NakupDan        = g.Sum(r => r.HodnotaSDPH - r.HodnotaBezDPH),
+                            NakupCelkem     = g.Sum(r => r.HodnotaSDPH),
+                            ProdejZaklad    = g.Sum(r => r.HodnotaProdejBezDPH),
+                            ProdejDan       = g.Sum(r => r.HodnotaProdejSDPH - r.HodnotaProdejBezDPH),
+                            ProdejCelkem    = g.Sum(r => r.HodnotaProdejSDPH)
                         })
                         .OrderBy(x => x.Sazba)
                         .ToList();
 
-                    col.Item().PaddingTop(8).AlignRight().Width(320).Table(t =>
+                    col.Item().PaddingTop(8).AlignRight().Width(420).Table(t =>
                     {
                         t.ColumnsDefinition(c =>
                         {
-                            c.RelativeColumn(1f);
-                            c.RelativeColumn(1.3f);
-                            c.RelativeColumn(1.3f);
-                            c.RelativeColumn(1.3f);
+                            c.RelativeColumn(0.8f);    // Sazba
+                            c.RelativeColumn(1.2f);    // Nákup bez DPH
+                            c.RelativeColumn(1.2f);    // Nákup s DPH
+                            c.RelativeColumn(1.2f);    // Prodej bez DPH
+                            c.RelativeColumn(1.2f);    // Prodej s DPH
                         });
-                        var h = TextStyle.Default.Bold().FontSize(8);
+                        var h = TextStyle.Default.Bold().FontSize(7);
                         t.Header(hdr =>
                         {
                             hdr.Cell().Background(Colors.Grey.Lighten3).Padding(4).Text("Sazba").Style(h);
-                            hdr.Cell().Background(Colors.Grey.Lighten3).Padding(4).AlignRight().Text("Základ").Style(h);
-                            hdr.Cell().Background(Colors.Grey.Lighten3).Padding(4).AlignRight().Text("DPH").Style(h);
-                            hdr.Cell().Background(Colors.Grey.Lighten3).Padding(4).AlignRight().Text("Celkem").Style(h);
+                            hdr.Cell().Background(Colors.Grey.Lighten3).Padding(4).AlignRight().Text("Nákup bez DPH").Style(h);
+                            hdr.Cell().Background(Colors.Grey.Lighten3).Padding(4).AlignRight().Text("Nákup s DPH").Style(h);
+                            hdr.Cell().Background(Colors.Grey.Lighten3).Padding(4).AlignRight().Text("Prodej bez DPH").Style(h);
+                            hdr.Cell().Background(Colors.Grey.Lighten3).Padding(4).AlignRight().Text("Prodej s DPH").Style(h);
                         });
                         foreach (var g in dphSkupiny)
                         {
                             t.Cell().Padding(4).Text($"{g.Sazba:N0} %");
-                            t.Cell().Padding(4).AlignRight().Text(cena(g.Zaklad));
-                            t.Cell().Padding(4).AlignRight().Text(cena(g.Dan));
-                            t.Cell().Padding(4).AlignRight().Text(cena(g.Celkem));
+                            t.Cell().Padding(4).AlignRight().Text(cena(g.NakupZaklad));
+                            t.Cell().Padding(4).AlignRight().Text(cena(g.NakupCelkem));
+                            t.Cell().Padding(4).AlignRight().Text(cena(g.ProdejZaklad));
+                            t.Cell().Padding(4).AlignRight().Text(cena(g.ProdejCelkem));
                         }
                         // Součet
+                        var bold = TextStyle.Default.Bold().FontSize(8);
                         t.Cell().Background(Colors.Grey.Lighten4).Padding(4).Text("Celkem").Bold();
-                        t.Cell().Background(Colors.Grey.Lighten4).Padding(4).AlignRight().Text(cena(dphSkupiny.Sum(x => x.Zaklad))).Bold();
-                        t.Cell().Background(Colors.Grey.Lighten4).Padding(4).AlignRight().Text(cena(dphSkupiny.Sum(x => x.Dan))).Bold();
                         t.Cell().Background(Colors.Grey.Lighten4).Padding(4).AlignRight()
-                            .Text(cena(dphSkupiny.Sum(x => x.Celkem))).Bold().FontColor(Colors.Red.Darken2);
+                            .Text(cena(dphSkupiny.Sum(x => x.NakupZaklad))).Bold();
+                        t.Cell().Background(Colors.Grey.Lighten4).Padding(4).AlignRight()
+                            .Text(cena(dphSkupiny.Sum(x => x.NakupCelkem))).Bold();
+                        t.Cell().Background(Colors.Grey.Lighten4).Padding(4).AlignRight()
+                            .Text(cena(dphSkupiny.Sum(x => x.ProdejZaklad))).Bold();
+                        t.Cell().Background(Colors.Grey.Lighten4).Padding(4).AlignRight()
+                            .Text(cena(dphSkupiny.Sum(x => x.ProdejCelkem))).Bold().FontColor(Colors.Red.Darken2);
                     });
 
                     col.Item().PaddingTop(12).AlignCenter()

@@ -21,6 +21,7 @@ public class VydejkaRadekViewModel : ViewModelBase
                 OnPropertyChanged(nameof(EvidencniJednotka));
                 OnPropertyChanged(nameof(StavNaSkladu));
                 OnPropertyChanged(nameof(JeMnozstviPlatne));
+                NotifyCeny();
             }
         }
     }
@@ -31,12 +32,38 @@ public class VydejkaRadekViewModel : ViewModelBase
         set
         {
             if (SetProperty(ref _mnozstviEvidencni, value))
+            {
                 OnPropertyChanged(nameof(JeMnozstviPlatne));
+                NotifyCeny();
+            }
         }
     }
 
     public string EvidencniJednotka => _vybraneZbozi?.EvidencniJednotka ?? "-";
     public decimal StavNaSkladu     => _vybraneZbozi?.AktualniStavEvidencni ?? 0m;
+
+    // ---- ceny za EJ ----
+    public decimal NakupniCenaZaEJ  => _vybraneZbozi?.NakupniCenaZaJednotkuBezDPH ?? 0m;
+    public decimal ProdejniCenaZaEJ => _vybraneZbozi?.ProdejniCenaZaJednotkuSDPH ?? 0m;
+    private decimal Sazba            => _vybraneZbozi?.SazbaDPH ?? 21m;
+
+    // ---- hodnoty řádku ----
+    public decimal HodnotaNakupBezDPH  => NakupniCenaZaEJ * MnozstviEvidencni;
+    public decimal HodnotaNakupSDPH    => HodnotaNakupBezDPH * (1 + Sazba / 100m);
+    public decimal HodnotaProdejSDPH   => ProdejniCenaZaEJ * MnozstviEvidencni;
+    public decimal HodnotaProdejBezDPH => Sazba > 0
+        ? HodnotaProdejSDPH / (1 + Sazba / 100m)
+        : HodnotaProdejSDPH;
+
+    private void NotifyCeny()
+    {
+        OnPropertyChanged(nameof(NakupniCenaZaEJ));
+        OnPropertyChanged(nameof(ProdejniCenaZaEJ));
+        OnPropertyChanged(nameof(HodnotaNakupBezDPH));
+        OnPropertyChanged(nameof(HodnotaNakupSDPH));
+        OnPropertyChanged(nameof(HodnotaProdejBezDPH));
+        OnPropertyChanged(nameof(HodnotaProdejSDPH));
+    }
 
     /// <summary>True pokud je řádek validní (zboží vybráno, množství > 0 a nepřekračuje stav).</summary>
     public bool JeMnozstviPlatne
@@ -50,8 +77,9 @@ public class VydejkaRadekViewModel : ViewModelBase
             NazevZbozi        = _vybraneZbozi?.Nazev ?? string.Empty,
             EvidencniJednotka = EvidencniJednotka,
             MnozstviEvidencni = MnozstviEvidencni,
-            NakupniCenaBezDPH = _vybraneZbozi?.NakupniCenaBezDPH,
-            SazbaDPH          = _vybraneZbozi?.SazbaDPH ?? 21m
+            NakupniCenaBezDPH = NakupniCenaZaEJ,
+            ProdejniCenaSDPH  = ProdejniCenaZaEJ,
+            SazbaDPH          = Sazba
         };
     }
 }

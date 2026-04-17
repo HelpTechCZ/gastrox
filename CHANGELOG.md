@@ -10,6 +10,14 @@ Všechny podstatné změny projektu Gastrox. Formát vychází z [Keep a Changel
 
 ---
 
+## [0.14.0] — 2026-04-17
+
+### Přidáno
+- **Rozpracované doklady** — u příjemek, výdejek i převodek lze kdykoliv uložit rozpracovaný stav a vrátit se k němu později. Na prvním kroku wizardu se zobrazí žlutý panel s uloženými rozpracovanými doklady (pokračovat / smazat). Stav se serializuje do JSON a ukládá v SQLite tabulce `Rozpracovano`. Při finálním uložení dokladu se rozpracovaný draft automaticky smaže.
+- **Nákupní a prodejní ceny ve výdejce** — souhrn výdejky (krok 3) zobrazuje celkové hodnoty ve 4 variantách: nákupní bez DPH, nákupní s DPH, prodejní bez DPH, prodejní s DPH. U každé položky je vidět nákupní a prodejní hodnota. PDF doklad výdejky má rozšířenou tabulku s oběma cenovými typy a sumář po sazbách DPH pro nákup i prodej. Ceny se ukládají jako snímek za evidenční jednotku v okamžiku výdeje.
+
+---
+
 ## [0.13.1] — 2026-04-17
 
 ### Vylepšeno
